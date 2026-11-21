@@ -1,0 +1,4407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SchoolMitra ERP — Timetable & Substitution Suite</title>
+  <style>
+    :root {
+      --bg-canvas: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-main: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --indigo: #4f46e5;
+      --indigo-hover: #4338ca;
+      --indigo-soft: #eef2ff;
+      --teal: #0d9488;
+      --teal-soft: #f0fdfa;
+      --emerald: #059669;
+      --emerald-soft: #ecfdf5;
+      --amber: #d97706;
+      --amber-soft: #fffbeb;
+      --rose: #e11d48;
+      --rose-soft: #fff1f2;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.14);
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+      --sidebar-w: 256px;
+      --sidebar-w-collapsed: 72px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ERP Layout Shell with Left Sidebar */
+    .erp-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .erp-sidebar {
+      width: var(--sidebar-w);
+      background: #0f172a;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: width 0.2s ease, transform 0.25s ease;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 50;
+      border-right: 1px solid #1e293b;
+    }
+
+    .erp-layout.sidebar-collapsed .erp-sidebar {
+      width: var(--sidebar-w-collapsed);
+    }
+
+    .sidebar-brand {
+      height: 64px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #0d9488);
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .erp-layout.sidebar-collapsed .brand-text,
+    .erp-layout.sidebar-collapsed .nav-section-label,
+    .erp-layout.sidebar-collapsed .nav-label,
+    .erp-layout.sidebar-collapsed .nav-badge,
+    .erp-layout.sidebar-collapsed .sidebar-footer-text {
+      display: none;
+    }
+
+    .sidebar-toggle-btn {
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #e2e8f0;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      padding: 0 10px 4px;
+    }
+
+    .nav-item {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: #cbd5e1;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .nav-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #1e293b;
+      color: #94a3b8;
+    }
+
+    .nav-item:hover {
+      background: #1e293b;
+      color: #ffffff;
+    }
+
+    .nav-item.active {
+      background: #4f46e5;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    }
+
+    .nav-item.active .nav-badge {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .absentee-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .absentee-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+    }
+
+    .absentee-chip button {
+      border: none;
+      background: none;
+      color: #92400e;
+      font-weight: 800;
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .clash-banner {
+      margin: 12px 20px 0;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      color: #9f1239;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .weekly-card-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .weekly-card-table th,
+    .weekly-card-table td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    .weekly-card-table th {
+      background: var(--bg-canvas);
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .sidebar-footer {
+      padding: 12px 14px;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .admin-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #334155;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-main);
+      border-radius: 9px;
+      padding: 6px 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 45;
+    }
+
+    .app-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .app-shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+    }
+
+    /* Header & Breadcrumbs */
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .breadcrumb a:hover {
+      color: var(--text-main);
+    }
+
+    .breadcrumb .sep {
+      color: #cbd5e1;
+    }
+
+    .breadcrumb .active-crumb {
+      color: var(--indigo);
+      font-weight: 600;
+    }
+
+    /* Segmented Tab Switcher */
+    .tab-group {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 12px;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 9px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: var(--bg-card);
+      color: var(--indigo);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Title Row */
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+
+    .page-subtitle {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .stat-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-emerald { background: var(--emerald); }
+    .dot-indigo { background: var(--indigo); }
+    .dot-amber { background: var(--amber); }
+
+    /* Main Card */
+    .main-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toolbar {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Controls & Buttons */
+    .control-select, .control-input {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .control-select:focus, .control-input:focus {
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+
+    .select-teal {
+      background: var(--teal-soft);
+      border-color: #99f6e4;
+      color: #115e59;
+    }
+
+    .select-indigo {
+      background: var(--indigo-soft);
+      border-color: #c7d2fe;
+      color: #312e81;
+    }
+
+    .select-amber {
+      background: var(--amber-soft);
+      border-color: #fde68a;
+      color: #78350f;
+    }
+
+    .date-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--indigo-soft);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius-md);
+      padding: 4px 10px;
+    }
+
+    .date-box input[type="date"] {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #312e81;
+      outline: none;
+    }
+
+    .day-chip {
+      background: var(--indigo);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .search-box {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .search-box input {
+      padding-left: 32px;
+      padding-right: 28px;
+      width: 210px;
+      font-weight: 500;
+      background: var(--bg-canvas);
+    }
+
+    .search-box input:focus {
+      background: #fff;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .clear-search {
+      position: absolute;
+      right: 8px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      padding: 8px 13px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-outline {
+      background: #fff;
+      border-color: var(--border);
+      color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-canvas);
+      color: var(--text-main);
+    }
+
+    .btn-indigo {
+      background: var(--indigo);
+      color: #fff;
+    }
+
+    .btn-indigo:hover {
+      background: var(--indigo-hover);
+    }
+
+    .btn-teal {
+      background: var(--teal);
+      color: #fff;
+    }
+
+    .btn-teal:hover {
+      background: #0f766e;
+    }
+
+    .btn-emerald {
+      background: var(--emerald);
+      color: #fff;
+    }
+
+    .btn-emerald:hover {
+      background: #047857;
+    }
+
+    .btn-rose {
+      background: var(--rose);
+      color: #fff;
+    }
+
+    .btn-rose:hover {
+      background: #be123c;
+    }
+
+    .badge-count {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+
+    /* Subbar for Daily Assignment & Free Periods */
+    .subbar {
+      padding: 10px 20px;
+      background: var(--bg-canvas);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-label input {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--indigo);
+      cursor: pointer;
+    }
+
+    /* Popover */
+    .popover-wrap {
+      position: relative;
+    }
+
+    .popover-panel {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      width: 280px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 14px;
+      z-index: 40;
+    }
+
+    .popover-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .link-btn {
+      border: none;
+      background: none;
+      color: var(--indigo);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .popover-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .col-toggle-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .col-toggle-item:hover {
+      background: var(--bg-canvas);
+    }
+
+    .col-toggle-item input {
+      margin-top: 2px;
+      accent-color: var(--indigo);
+    }
+
+    /* Responsive Table */
+    .table-wrap {
+      overflow-x: auto;
+      position: relative;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    thead th {
+      background: var(--bg-canvas);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      min-width: 165px;
+    }
+
+    thead th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    thead th.sortable:hover {
+      background: var(--bg-subtle);
+    }
+
+    .th-sub {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: normal;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.12s ease;
+    }
+
+    tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    td {
+      padding: 11px 16px;
+      vertical-align: middle;
+    }
+
+    /* Sticky First Column */
+    .sticky-col {
+      position: sticky;
+      left: 0;
+      z-index: 15;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      min-width: 225px;
+    }
+
+    thead th.sticky-col {
+      z-index: 25;
+      background: var(--bg-canvas);
+    }
+
+    tbody tr:hover td.sticky-col {
+      background: #f8fafc;
+    }
+
+    .sticky-shadow {
+      box-shadow: 4px 0 10px -4px rgba(15, 23, 42, 0.1);
+    }
+
+    .teacher-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .teacher-name {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .dept-tag {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .load-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+    }
+
+    .load-badge.high {
+      background: var(--amber-soft);
+      color: #92400e;
+    }
+
+    .load-badge.at-cap {
+      background: var(--rose-soft);
+      color: #be123c;
+      border: 1px solid #fecdd3;
+    }
+
+    /* Subject Badges */
+    .editable-cell {
+      cursor: pointer;
+    }
+
+    .editable-cell:hover {
+      background: #eef2ff !important;
+    }
+
+    .subject-pill {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .pill-indigo { background: #eef2ff; color: #3730a3; border-color: #c7d2fe; }
+    .pill-amber  { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    .pill-emerald{ background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+    .pill-sky    { background: #f0f9ff; color: #075985; border-color: #bae6fd; }
+    .pill-violet { background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe; }
+    .pill-rose   { background: #fff1f2; color: #9f1239; border-color: #fecdd3; }
+
+    .free-dash {
+      color: #cbd5e1;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    /* Class View Cell Stack */
+    .class-cell-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+    }
+
+    .class-teacher-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* Recess Break Banner */
+    tr.recess-row {
+      background: var(--amber-soft) !important;
+      border-top: 1px solid #fde68a;
+      border-bottom: 1px solid #fde68a;
+    }
+
+    tr.recess-row td.sticky-col {
+      background: var(--amber-soft) !important;
+      border-right-color: #fde68a;
+    }
+
+    .recess-tag {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    /* Daily Assignment Pinned Absentee Row */
+    tr.absentee-row {
+      background: #fffbeb !important;
+      border-bottom: 2px solid #fcd34d;
+    }
+
+    tr.absentee-row td.sticky-col {
+      background: #fef3c7 !important;
+      border-right-color: #fcd34d;
+    }
+
+    .absentee-kicker {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #b45309;
+      display: block;
+    }
+
+    .status-unassigned {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 4px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--amber-soft);
+      color: #b45309;
+      border: 1px solid #fcd34d;
+    }
+
+    .status-assigned {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--emerald);
+      color: #fff;
+    }
+
+    .unassign-x {
+      border: none;
+      background: none;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .assign-btn {
+      background: var(--emerald-soft);
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .assign-btn:hover {
+      background: var(--emerald);
+      color: #fff;
+      border-color: var(--emerald);
+    }
+
+    .assign-btn.over-cap {
+      background: var(--amber-soft);
+      color: #92400e;
+      border-color: #fcd34d;
+    }
+
+    .assign-btn.over-cap:hover {
+      background: var(--amber);
+      color: #fff;
+      border-color: var(--amber);
+    }
+
+    .subbar-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cap-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .cap-control select {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--indigo);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .free-chip {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    /* Teacher Free Periods Tab Styles */
+    .free-period-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 4px 0;
+    }
+
+    .free-period-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .free-count-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--indigo);
+      background: var(--indigo-soft);
+      border: 1px solid #c7d2fe;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .copy-list-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .copy-list-btn:hover {
+      background: var(--indigo-soft);
+      color: var(--indigo);
+      border-color: #c7d2fe;
+    }
+
+    .free-pills-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .free-teacher-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      text-align: left;
+    }
+
+    .free-teacher-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .free-teacher-pill.over-cap-pill {
+      opacity: 0.72;
+      border-style: dashed;
+    }
+
+    .pill-dept-tag {
+      font-size: 10px;
+      font-weight: 700;
+      opacity: 0.85;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    .pill-load-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(15, 23, 42, 0.08);
+    }
+
+    /* Footer & Pagination */
+    .card-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .page-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .page-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 11px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      background: var(--bg-canvas);
+      color: var(--text-main);
+    }
+
+    .page-btn.active {
+      background: var(--indigo);
+      border-color: var(--indigo);
+      color: #fff;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Empty State */
+    .empty-box {
+      padding: 48px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 60;
+    }
+
+    .modal-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 460px;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-canvas);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+    }
+
+    .timings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-height: 310px;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-canvas);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .preset-chip {
+      border: 1px solid var(--border);
+      background: var(--bg-canvas);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .preset-chip:hover {
+      background: var(--indigo-soft);
+      color: var(--indigo);
+      border-color: #c7d2fe;
+    }
+
+    /* Toast */
+    .toast-stack {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 80;
+      pointer-events: none;
+    }
+
+    .toast-item {
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 960px) {
+      .erp-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        transform: translateX(-100%);
+      }
+      .erp-layout.mobile-open .erp-sidebar {
+        transform: translateX(0);
+      }
+      .erp-layout.mobile-open .sidebar-backdrop {
+        display: block;
+      }
+      .mobile-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app-shell { padding: 14px 12px 32px; }
+      .page-title { font-size: 20px; }
+      .search-box input { width: 100%; }
+      .timings-grid { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+      body {
+        background: #ffffff !important;
+        font-size: 11px;
+      }
+      .erp-sidebar,
+      .sidebar-backdrop,
+      .mobile-menu-btn {
+        display: none !important;
+      }
+      .app-shell {
+        max-width: 100% !important;
+        padding: 0 !important;
+      }
+      .tab-group,
+      .toolbar,
+      .subbar,
+      .card-footer,
+      .copy-list-btn,
+      .toast-stack,
+      .modal-backdrop {
+        display: none !important;
+      }
+      .main-card {
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .table-wrap {
+        overflow: visible !important;
+      }
+      .sticky-col {
+        position: static !important;
+        box-shadow: none !important;
+      }
+      .free-teacher-pill {
+        border: 1px solid #cbd5e1 !important;
+        padding: 2px 6px !important;
+        font-size: 10px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-stack" class="toast-stack"></div>
+
+  <div class="erp-layout" id="erp-layout">
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Left-Side ERP Navigation Sidebar -->
+    <aside class="erp-sidebar" aria-label="ERP Main Navigation">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <span class="brand-icon">SM</span>
+          <div class="brand-text">
+            <span class="brand-title">SchoolMitra ERP</span>
+            <span class="brand-sub">Academic &amp; Admin Suite</span>
+          </div>
+        </div>
+        <button type="button" class="sidebar-toggle-btn" id="sidebar-collapse-btn" title="Collapse or expand menu">
+          &#9776;
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Time Table &amp; Proxy</div>
+          <button type="button" class="nav-item active" data-nav-view="teachers">
+            <span class="nav-item-left">
+              <span class="nav-icon">&#128104;&#8205;&#127979;</span>
+              <span class="nav-label">Teacher's Periods</span>
+            </span>
+            <span class="nav-badge">38</span>
+          </button>
+          <button type="button" class="nav-item" data-nav-view="classes">
+            <span class="nav-item-left">
+              <span class="nav-icon">&#127979;</span>
+              <span class="nav-label">Class's Periods</span>
+            </span>
+            <span class="nav-badge">15</span>
+          </button>
+          <button type="button" class="nav-item" data-nav-view="daily">
+            <span class="nav-item-left">
+              <span class="nav-icon">&#128260;</span>
+              <span class="nav-label">Daily Assignment</span>
+            </span>
+            <span class="nav-badge">Proxy</span>
+          </button>
+          <button type="button" class="nav-item" data-nav-view="free">
+            <span class="nav-item-left">
+              <span class="nav-icon">&#9989;</span>
+              <span class="nav-label">Teacher Free Periods</span>
+            </span>
+            <span class="nav-badge">Live</span>
+          </button>
+          <button type="button" class="nav-item" data-nav-view="workload">
+            <span class="nav-item-left">
+              <span class="nav-icon">&#128202;</span>
+              <span class="nav-label">Workload &amp; Weekly Card</span>
+            </span>
+            <span class="nav-badge">Analytics</span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="admin-avatar">AD</span>
+        <div class="sidebar-footer-text">
+          <div style="color:#fff;font-weight:600;">Timetable Admin</div>
+          <div style="color:#94a3b8;font-size:11px;">Session 2026–27</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <div class="app-shell">
+        <!-- Top Breadcrumb & 4-Module Segmented Switcher -->
+        <div class="top-bar">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" title="Open Menu">&#9776;</button>
+            <nav class="breadcrumb" aria-label="Breadcrumb">
+              <a href="#erp" id="home-link" title="SchoolMitra ERP">ERP</a>
+              <span id="crumb-mid-sep" class="sep hidden">/</span>
+              <a href="#timetable" id="crumb-mid-link" class="hidden">Time Table</a>
+              <span class="sep">/</span>
+              <span id="crumb-current" class="active-crumb">Teacher's Periods</span>
+            </nav>
+          </div>
+
+          <div class="tab-group" role="tablist" aria-label="ERP Timetable Views">
+            <button type="button" class="tab-btn active" id="tab-teachers" role="tab" aria-selected="true">
+              Teacher's Periods
+            </button>
+            <button type="button" class="tab-btn" id="tab-classes" role="tab" aria-selected="false">
+              Class's Periods
+            </button>
+            <button type="button" class="tab-btn" id="tab-daily" role="tab" aria-selected="false">
+              Daily Periods Assignment
+            </button>
+            <button type="button" class="tab-btn" id="tab-free" role="tab" aria-selected="false">
+              Teacher Free Periods
+            </button>
+            <button type="button" class="tab-btn" id="tab-workload" role="tab" aria-selected="false">
+              Workload &amp; Weekly Card
+            </button>
+          </div>
+        </div>
+
+        <!-- Page Title & Live Summary Pills -->
+        <div class="title-row">
+          <div>
+            <h1 class="page-title" id="page-title">Teacher's Periods</h1>
+            <p class="page-subtitle" id="page-subtitle">
+              Consolidated schedule view without duplicate columns — click any period cell to edit inline.
+            </p>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-pill">
+              <span class="dot dot-emerald" id="stat-dot-1"></span>
+              <span id="stat-label-1">Active Faculty:</span>
+              <strong id="stat-val-1">38</strong>
+            </div>
+            <div class="stat-pill">
+              <span class="dot dot-indigo" id="stat-dot-2"></span>
+              <span id="stat-label-2">Assigned Slots:</span>
+              <strong id="stat-val-2">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Data Card -->
+        <main class="main-card">
+          <!-- Unified Action Toolbar -->
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <!-- Context Select: Timetable (Teacher/Daily) or Shift (Class) -->
+              <select id="context-select" class="control-select select-teal" aria-label="Select Timetable or Shift"></select>
+
+              <!-- Standard Day Select (Teacher & Class Views) -->
+              <select id="day-select" class="control-select select-indigo" aria-label="Select Day">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday" selected>Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+              </select>
+
+              <!-- Daily Assignment Controls (Visible only in Daily Tab) -->
+              <div id="daily-controls" class="toolbar-left hidden">
+                <div class="date-box">
+                  <input type="date" id="daily-date" value="2026-11-19" aria-label="Assignment Date" />
+                  <span class="day-chip" id="daily-day-chip">Thursday</span>
+                </div>
+
+                <select id="daily-mode-select" class="control-select" aria-label="Assignment Mode">
+                  <option value="Teacher" selected>Teacher</option>
+                  <option value="Class">Class</option>
+                </select>
+
+                <select id="absentee-select" class="control-select select-amber" aria-label="Select Absentee Teacher"></select>
+
+                <button type="button" class="btn btn-teal" id="add-period-btn">+ Add Period</button>
+              </div>
+            </div>
+
+            <div class="toolbar-right">
+              <!-- Search Input -->
+              <div class="search-box">
+                <span class="search-icon">&#128269;</span>
+                <input type="text" id="search-input" class="control-input" placeholder="Search teacher or subject..." />
+                <button type="button" id="clear-search-btn" class="clear-search hidden" title="Clear search">&times;</button>
+              </div>
+
+              <!-- Timings Button -->
+              <button type="button" class="btn btn-outline" id="timings-btn" title="Customize Period & Recess Timings">
+                Timings
+              </button>
+
+              <!-- Column Visibility Popover -->
+              <div class="popover-wrap" id="col-vis-wrap">
+                <button type="button" class="btn btn-outline" id="col-vis-btn">
+                  <span>Column Visibility</span>
+                  <span class="badge-count" id="col-vis-badge">8/8</span>
+                </button>
+                <div class="popover-panel hidden" id="col-vis-popover">
+                  <div class="popover-head">
+                    <span id="col-vis-heading">Toggle Periods</span>
+                    <button type="button" class="link-btn" id="show-all-cols-btn">Show All</button>
+                  </div>
+                  <div class="popover-grid" id="col-vis-list"></div>
+                </div>
+              </div>
+
+              <!-- Reset / Generate Sample Data -->
+              <button type="button" class="btn btn-outline" id="reset-sample-btn" title="Reset sample schedule data">
+                Reset Data
+              </button>
+
+              <!-- Print Button (Teacher Free Periods View) -->
+              <button type="button" class="btn btn-outline hidden" id="print-btn" title="Print Landscape A4 Schedule">
+                Print
+              </button>
+
+              <!-- Proxy Slip Button (Daily Assignment View) -->
+              <button type="button" class="btn btn-outline hidden" id="proxy-slip-btn" title="Generate Copyable / Printable Proxy Slip">
+                Proxy Slip
+              </button>
+
+              <!-- Download Excel (CSV) -->
+              <button type="button" class="btn btn-emerald" id="export-csv-btn">
+                Download Excel
+              </button>
+
+              <!-- Download PDF (Built-in Landscape A4 Binary PDF 1.4) -->
+              <button type="button" class="btn btn-rose" id="export-pdf-btn">
+                Download PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Real-Time Clash Warning Banner -->
+          <div id="clash-banner" class="clash-banner hidden" role="alert">
+            <span id="clash-banner-text"></span>
+            <button type="button" class="link-btn" id="dismiss-clash-btn" style="color:#9f1239;">Dismiss</button>
+          </div>
+
+          <!-- Teacher Free Periods Sub-Toolbar -->
+          <div id="free-subbar" class="subbar hidden">
+            <div class="subbar-group">
+              <div class="cap-control">
+                <label for="free-stream-select">Academic Stream:</label>
+                <select id="free-stream-select" aria-label="Filter by Academic Stream">
+                  <option value="ALL" selected>All Streams</option>
+                  <option value="Commerce">Commerce</option>
+                  <option value="Science">Science</option>
+                  <option value="Humanities">Humanities</option>
+                  <option value="Languages">Languages</option>
+                  <option value="Primary / Activity">Primary / Activity</option>
+                </select>
+              </div>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="free-under-cap-checkbox" />
+                <span>Under Workload Cap Only</span>
+              </label>
+
+              <div class="cap-control">
+                <label for="free-max-cap-select">Daily Cap:</label>
+                <select id="free-max-cap-select" aria-label="Max Daily Periods Cap">
+                  <option value="4">4 Periods</option>
+                  <option value="5">5 Periods</option>
+                  <option value="6" selected>6 Periods</option>
+                  <option value="7">7 Periods</option>
+                  <option value="8">Unlimited (8)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="toolbar-right">
+              <span style="font-size:12px;color:#64748b;">Click any free teacher badge to assign a proxy period</span>
+              <button type="button" class="btn btn-indigo" id="copy-all-free-btn">Copy Full Day Free List</button>
+            </div>
+          </div>
+
+          <!-- Daily Assignment Sub-Toolbar -->
+          <div id="daily-subbar" class="subbar hidden">
+            <div class="subbar-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="free-only-checkbox" />
+                <span>Free in Absentee Periods Only</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="same-stream-checkbox" />
+                <span>Same-Subject / Stream Only</span>
+              </label>
+
+              <div class="cap-control">
+                <label for="max-cap-select">Max Daily Periods Cap:</label>
+                <select id="max-cap-select" aria-label="Max Daily Periods Cap">
+                  <option value="4">4 Periods</option>
+                  <option value="5">5 Periods</option>
+                  <option value="6" selected>6 Periods</option>
+                  <option value="7">7 Periods</option>
+                  <option value="8">Unlimited (8)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="toolbar-right">
+              <button type="button" class="btn btn-outline" id="add-absentee-btn">+ Add Absentee</button>
+              <button type="button" class="btn btn-outline" id="clear-subs-btn">Clear Assignments</button>
+              <button type="button" class="btn btn-indigo" id="auto-assign-btn">Auto-Assign Best Matches</button>
+            </div>
+          </div>
+
+          <!-- Multi-Absentee Active Strip -->
+          <div id="multi-absentee-bar" class="subbar hidden" style="background:#fffbeb;border-bottom-color:#fde68a;">
+            <div class="absentee-chip-list" id="absentee-chip-list"></div>
+            <span style="font-size:12px;color:#92400e;font-weight:600;">Multi-Absentee Mode: Substitutes cannot be double-booked across absentees</span>
+          </div>
+
+          <!-- Scrollable Schedule Table -->
+          <div class="table-wrap" id="table-wrap">
+            <table>
+              <thead>
+                <tr id="table-head-row"></tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+
+            <div id="empty-box" class="empty-box hidden">
+              <strong>No matching schedule records found</strong>
+              <p style="margin:6px 0 14px;font-size:13px;">Try adjusting your search query or resetting hidden columns.</p>
+              <button type="button" class="btn btn-indigo" id="empty-reset-btn">Reset Filters</button>
+            </div>
+          </div>
+
+          <!-- Footer & Pagination -->
+          <div class="card-footer">
+            <div class="footer-left">
+              <span id="pagination-info">Showing 1 to 10 of 38 entries</span>
+              <select id="page-size-select" class="control-select" style="padding:5px 9px;font-size:12px;" aria-label="Rows per page">
+                <option value="10" selected>10 / page</option>
+                <option value="25">25 / page</option>
+                <option value="all">All (38)</option>
+              </select>
+            </div>
+
+            <div class="page-btns" id="pagination-controls"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline Cell Edit Modal -->
+  <div id="edit-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="edit-modal-title">Edit Schedule Slot</h2>
+        <button type="button" class="link-btn" id="close-edit-modal" style="font-size:20px;color:#64748b;">&times;</button>
+      </div>
+      <form id="edit-modal-form">
+        <div class="modal-body">
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:12px;">
+            <div style="color:#64748b;" id="edit-meta-top">Faculty / Class</div>
+            <div style="font-weight:700;color:#0f172a;margin-top:2px;" id="edit-meta-val">—</div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-primary-input" id="edit-primary-label">Subject & Class Section</label>
+            <input type="text" id="edit-primary-input" class="control-input" placeholder="e.g., Mathematics [XII-C] or - for Free" />
+          </div>
+
+          <div class="form-group hidden" id="edit-teacher-group">
+            <label for="edit-teacher-input">Assigned Teacher</label>
+            <input type="text" id="edit-teacher-input" class="control-input" placeholder="e.g., RUSHALI MISHRA (NUR)" />
+          </div>
+
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;text-transform:uppercase;">Quick Presets</div>
+            <div class="preset-row" id="edit-presets"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancel-edit-modal">Cancel</button>
+          <button type="submit" class="btn btn-indigo">Save Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- + Add Period Modal (Daily Assignment) -->
+  <div id="add-period-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Assign Substitution Period</h2>
+        <button type="button" class="link-btn" id="close-add-modal" style="font-size:20px;color:#64748b;">&times;</button>
+      </div>
+      <form id="add-period-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="ap-period">Select Period</label>
+            <select id="ap-period" class="control-select"></select>
+          </div>
+          <div class="form-group">
+            <label for="ap-subject">Class & Subject</label>
+            <input type="text" id="ap-subject" class="control-input" required placeholder="e.g., Accountancy [XI-B]" />
+          </div>
+          <div class="form-group">
+            <label for="ap-substitute">Substitute Teacher</label>
+            <select id="ap-substitute" class="control-select"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancel-add-modal">Cancel</button>
+          <button type="submit" class="btn btn-teal">Confirm Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Period & Recess Timings Modal -->
+  <div id="timings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Customize Period & Recess Timings</h2>
+        <button type="button" class="link-btn" id="close-timings-modal" style="font-size:20px;color:#64748b;">&times;</button>
+      </div>
+      <form id="timings-form">
+        <div class="modal-body">
+          <div class="timings-grid" id="timings-grid"></div>
+        </div>
+        <div class="modal-footer" style="justify-content:space-between;">
+          <button type="button" class="link-btn" id="reset-timings-btn">Reset Defaults</button>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline" id="cancel-timings-modal">Cancel</button>
+            <button type="submit" class="btn btn-indigo">Save Timings</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Weekly Personal Timetable Card & Proxy Slip Modal -->
+  <div id="weekly-card-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:860px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="weekly-card-title">Teacher Weekly Timetable Card</h2>
+        <button type="button" class="link-btn" id="close-weekly-modal" style="font-size:20px;color:#64748b;">&times;</button>
+      </div>
+      <div class="modal-body" id="weekly-card-body" style="max-height:70vh;overflow-y:auto;"></div>
+      <div class="modal-footer" style="justify-content:space-between;">
+        <button type="button" class="btn btn-outline" id="copy-weekly-modal-btn">Copy Text Summary</button>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-outline" id="print-weekly-modal-btn">Print Card</button>
+          <button type="button" class="btn btn-indigo" id="done-weekly-modal-btn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const PERIOD_COUNT = 8;
+      const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+      const DEFAULT_PERIOD_TIMINGS = [
+        "08:00 - 08:40",
+        "08:40 - 09:20",
+        "09:20 - 10:00",
+        "10:00 - 10:40",
+        "11:05 - 11:45",
+        "11:45 - 12:25",
+        "12:25 - 13:05",
+        "13:05 - 13:45"
+      ];
+      const DEFAULT_RECESS_TIMING = "10:40 - 11:05";
+
+      // =========================================================================
+      // 1. COMPLETE 38-TEACHER DATASET
+      // =========================================================================
+      const RAW_TEACHERS = [
+        { id: 1, name: "Dr. Saurabh Malhotra", dept: "Physics", slots: ["-", "-", "-", "-", "Physics [XII-A]", "-", "Physics Lab [XII-A]", "-"] },
+        { id: 2, name: "Mr. Ajay Kumar Sharma", dept: "Chemistry", slots: ["-", "-", "-", "-", "-", "Chemistry [XI-A]", "Chemistry [XII-B]", "-"] },
+        { id: 3, name: "Mr. Amit Kumar", dept: "Library", slots: ["-", "LIBRARY [VII-B]", "LIBRARY [V-A]", "-", "LIBRARY [VIII-A]", "-", "LIBRARY [VI-C]", "-"] },
+        { id: 4, name: "Mr. Ashok", dept: "Commerce", slots: ["-", "Business Studies [XII-B]", "Accountancy [XI-B]", "Accountancy [XII-A]", "-", "Business Studies [XI-B]", "-", "-"] },
+        { id: 5, name: "Mr. Ganganmeet Singh", dept: "Computer Sc.", slots: ["-", "-", "-", "-", "Computer Sc. [XI-A]", "Computer Sc. [XII-A]", "-", "Informatics [XI-C]"] },
+        { id: 6, name: "Mr. Lakhan Singh", dept: "Sports", slots: ["-", "-", "-", "GAMES", "-", "GAMES [VIII-A]", "-", "GAMES [VII-C]"] },
+        { id: 7, name: "Mr. Nitish Yadav", dept: "Humanities", slots: ["-", "-", "Political Science [XI-C]", "Political Science [XII-C]", "-", "-", "History [XI-C]", "-"] },
+        { id: 8, name: "Mr. Pink Raj Ganguly", dept: "Mathematics", slots: ["-", "-", "Mathematics [XII-C]", "Mathematics [XI-A]", "-", "Mathematics [X-B]", "-", "-"] },
+        { id: 9, name: "Mr. Puran Giri Goswami", dept: "Hindi", slots: ["-", "-", "-", "-", "Hindi [IX-A]", "-", "Hindi [X-C]", "Sanskrit [VIII-B]"] },
+        { id: 10, name: "Mr. Rajesh Gupta", dept: "Economics", slots: ["-", "-", "-", "-", "Economics [XII-B]", "Economics [XI-B]", "-", "Economics [XII-C]"] },
+        { id: 11, name: "Mr. Aditya Ranjan", dept: "Mathematics", slots: ["-", "X-A", "-", "IX-A", "XI-A", "XII-A", "XII-A", "-"] },
+        { id: 12, name: "Mr. Ashish", dept: "Science", slots: ["VIII-B", "VIII-A", "VII-B", "IV-A", "-", "V-A", "-", "VI-B"] },
+        { id: 13, name: "Mrs. Sunita Verma", dept: "English", slots: ["English [XII-A]", "-", "English [XI-B]", "-", "English [X-A]", "-", "-", "English [IX-C]"] },
+        { id: 14, name: "Mr. Vikramaditya Rao", dept: "Mathematics", slots: ["Mathematics [IX-A]", "Mathematics [X-C]", "-", "-", "Mathematics [XI-C]", "-", "Mathematics [VIII-B]", "-"] },
+        { id: 15, name: "Ms. Neha Kapoor", dept: "Biology", slots: ["-", "Biology [XII-A]", "Biology Lab [XII-A]", "-", "-", "Biology [XI-A]", "-", "Science [IX-B]"] },
+        { id: 16, name: "Mr. Dinesh Chandra Joshi", dept: "Social Sc.", slots: ["History [X-A]", "-", "-", "Geography [IX-C]", "-", "History [XII-C]", "-", "-"] },
+        { id: 17, name: "Mrs. Kavita Nair", dept: "English", slots: ["-", "English [VIII-A]", "-", "English [VII-B]", "English [VI-A]", "-", "-", "LIBRARY [VI-A]"] },
+        { id: 18, name: "Dr. Meenakshi Iyer", dept: "Chemistry", slots: ["Chemistry [XII-A]", "-", "-", "Chemistry Lab [XI-A]", "-", "-", "Science [X-B]", "-"] },
+        { id: 19, name: "Mr. Harishankar Tiwari", dept: "Hindi", slots: ["Hindi [VIII-C]", "Hindi [VII-A]", "-", "-", "-", "Hindi [VI-B]", "-", "Hindi [XI-C]"] },
+        { id: 20, name: "Ms. Priya Deshmukh", dept: "Fine Arts", slots: ["-", "-", "Fine Arts [XI-C]", "-", "Art & Craft [VI-B]", "-", "Fine Arts [XII-C]", "-"] },
+        { id: 21, name: "Mr. Sandeep Kulkarni", dept: "Physics", slots: ["-", "Physics [XI-A]", "-", "Physics [XII-B]", "-", "Science [IX-A]", "-", "-"] },
+        { id: 22, name: "Mrs. Anjali Saxena", dept: "Mathematics", slots: ["Mathematics [VII-A]", "-", "Mathematics [VI-C]", "-", "-", "Mathematics [VIII-A]", "-", "Mathematics [IX-C]"] },
+        { id: 23, name: "Mr. Manoj Kumar Verma", dept: "Sports", slots: ["GAMES [VI-A]", "-", "-", "-", "GAMES [X-C]", "-", "GAMES [XI-B]", "-"] },
+        { id: 24, name: "Ms. Ritu Bhardwaj", dept: "Computer Sc.", slots: ["Computer [VIII-B]", "-", "Computer [VII-C]", "-", "-", "Computer [VI-A]", "-", "-"] },
+        { id: 25, name: "Mr. Alok Nath Pandey", dept: "Geography", slots: ["-", "Geography [XI-C]", "Geography [XII-C]", "-", "Social Sc. [VIII-A]", "-", "-", "Social Sc. [VII-B]"] },
+        { id: 26, name: "Mrs. Shalini Srivastava", dept: "Biology", slots: ["Science [VIII-C]", "-", "-", "Science [VII-A]", "-", "Biology [XII-B]", "-", "-"] },
+        { id: 27, name: "Mr. Tarun Chatterjee", dept: "Music", slots: ["-", "Music [VI-C]", "-", "Music [VII-A]", "-", "-", "Music [VIII-B]", "-"] },
+        { id: 28, name: "Ms. Pooja Malhotra", dept: "Commerce", slots: ["Accountancy [XII-C]", "-", "Business Studies [XI-C]", "-", "Entrepreneurship [XII-B]", "-", "-", "-"] },
+        { id: 29, name: "Mr. Rameshwar Dayal", dept: "Sanskrit", slots: ["Sanskrit [VII-C]", "-", "Sanskrit [VI-B]", "-", "Sanskrit [VIII-A]", "-", "-", "-"] },
+        { id: 30, name: "Mrs. Deepika Chauhan", dept: "English", slots: ["-", "English [IX-B]", "-", "English [X-C]", "-", "English [XII-B]", "-", "-"] },
+        { id: 31, name: "Mr. Pradeep Singh Negi", dept: "Mathematics", slots: ["Mathematics [XI-B]", "-", "-", "Mathematics [XII-A]", "-", "-", "Mathematics [X-A]", "-"] },
+        { id: 32, name: "Ms. Swati Agarwal", dept: "Economics", slots: ["-", "Economics [X-A]", "-", "Economics [IX-B]", "-", "Economics [XII-A]", "-", "-"] },
+        { id: 33, name: "Mr. Yogeshwar Dutt", dept: "Sports", slots: ["-", "-", "GAMES [V-B]", "-", "GAMES [IV-A]", "-", "-", "GAMES [XII-A]"] },
+        { id: 34, name: "Mrs. Vandana Mishra", dept: "Hindi", slots: ["Hindi [X-B]", "-", "Hindi [XII-C]", "-", "-", "Hindi [IX-C]", "-", "-"] },
+        { id: 35, name: "Mr. Nitin Gadkari", dept: "Social Sc.", slots: ["-", "Social Sc. [VI-A]", "-", "Social Sc. [VIII-C]", "-", "-", "Political Science [XI-B]", "-"] },
+        { id: 36, name: "Ms. Komal Arora", dept: "Psychology", slots: ["Psychology [XII-C]", "-", "Psychology [XI-C]", "-", "-", "-", "Counseling [X-A]", "-"] },
+        { id: 37, name: "Mr. Surendra Pal Singh", dept: "Physics", slots: ["-", "Science [X-C]", "-", "Physics [XI-B]", "-", "-", "Physics Lab [XI-B]", "-"] },
+        { id: 38, name: "Ms. Garima Choudhary", dept: "Library", slots: ["LIBRARY [IX-A]", "-", "LIBRARY [X-B]", "-", "-", "LIBRARY [XI-A]", "-", "LIBRARY [XII-C]"] }
+      ];
+
+      function buildTeacherData() {
+        const timetables = ["TIME TABLE I_XII", "TIME TABLE PRIMARY", "TIME TABLE SENIOR"];
+        const store = {};
+        timetables.forEach((tt, ttIdx) => {
+          store[tt] = {};
+          DAYS.forEach((day, dIdx) => {
+            store[tt][day] = RAW_TEACHERS.map((t, tIdx) => {
+              if (tt === "TIME TABLE I_XII" && day === "Wednesday") {
+                return { id: t.id, name: t.name, dept: t.dept, periods: [...t.slots] };
+              }
+              const offset = (dIdx + ttIdx + (tIdx % 3)) % PERIOD_COUNT;
+              const periods = t.slots.map((_, idx) => {
+                const val = t.slots[(idx + offset) % PERIOD_COUNT];
+                if (val === "-") return "-";
+                if (tt === "TIME TABLE PRIMARY") return val.replace(/\[(VI|VII|VIII|IX|X|XI|XII)-([A-C])\]/, "[IV-$2]");
+                if (tt === "TIME TABLE SENIOR") return val.replace(/\[(IV|V|VI|VII|VIII)-([A-C])\]/, "[XI-$2]");
+                return val;
+              });
+              return { id: t.id, name: t.name, dept: t.dept, periods };
+            });
+          });
+        });
+        return store;
+      }
+
+      // =========================================================================
+      // 2. CLASS'S PERIODS DATASET (15 Classes: NUR - A to XII - B)
+      // =========================================================================
+      const CLASS_COLS = [
+        { id: "NUR - A", label: "NUR - A", shift: "Morning Shift" },
+        { id: "LKG - A", label: "LKG - A", shift: "Morning Shift" },
+        { id: "UKG - A", label: "UKG - A", shift: "Morning Shift" },
+        { id: "I - A", label: "I - A", shift: "Morning Shift" },
+        { id: "II - A", label: "II - A", shift: "Morning Shift" },
+        { id: "III - A", label: "III - A", shift: "Morning Shift" },
+        { id: "IV - A", label: "IV - A", shift: "General Shift" },
+        { id: "V - A", label: "V - A", shift: "General Shift" },
+        { id: "VI - A", label: "VI - A", shift: "General Shift" },
+        { id: "VII - A", label: "VII - A", shift: "General Shift" },
+        { id: "VIII - A", label: "VIII - A", shift: "General Shift" },
+        { id: "IX - A", label: "IX - A", shift: "General Shift" },
+        { id: "X - A", label: "X - A", shift: "General Shift" },
+        { id: "XI - B", label: "XI - B", shift: "General Shift" },
+        { id: "XII - B", label: "XII - B", shift: "General Shift" }
+      ];
+
+      const BASE_SATURDAY_CLASSES = [
+        {
+          "NUR - A": { subject: "Akshar Manthan", teacher: "RUSHALI MISHRA (NUR)" },
+          "LKG - A": { subject: "Swar Lipi", teacher: "RUSHALI MISHRA (LKG)" },
+          "UKG - A": { subject: "English Workbook", teacher: "SANYUKTA VERMA" },
+          "I - A": { subject: "Hindi - II", teacher: "RABITA SINHA" },
+          "II - A": { subject: "Mathematics", teacher: "ANJALI SAXENA" },
+          "III - A": { subject: "EVS", teacher: "SHALINI SRIVASTAVA" },
+          "IV - A": { subject: "English", teacher: "KAVITA NAIR" },
+          "V - A": { subject: "LIBRARY", teacher: "MR. AMIT KUMAR" },
+          "VI - A": { subject: "GAMES", teacher: "MANOJ KUMAR VERMA" },
+          "VII - A": { subject: "Mathematics", teacher: "ANJALI SAXENA" },
+          "VIII - A": { subject: "English", teacher: "KAVITA NAIR" },
+          "IX - A": { subject: "Hindi", teacher: "PURAN GIRI GOSWAMI" },
+          "X - A": { subject: "Mathematics", teacher: "PRADEEP S. NEGI" },
+          "XI - B": { subject: "Accountancy", teacher: "MR. ASHOK" },
+          "XII - B": { subject: "Accountancy", teacher: "MR. ASHOK" }
+        },
+        {
+          "NUR - A": { subject: "Writing", teacher: "RUSHALI MISHRA (NUR)" },
+          "LKG - A": { subject: "Hindi W.S", teacher: "RUSHALI MISHRA (LKG)" },
+          "UKG - A": { subject: "Drawing", teacher: "SANYUKTA VERMA" },
+          "I - A": { subject: "English", teacher: "RABITA SINHA" },
+          "II - A": { subject: "Hindi", teacher: "HARISHANKAR TIWARI" },
+          "III - A": { subject: "Mathematics", teacher: "ANJALI SAXENA" },
+          "IV - A": { subject: "Science", teacher: "SHALINI SRIVASTAVA" },
+          "V - A": { subject: "Social Sc.", teacher: "DINESH C. JOSHI" },
+          "VI - A": { subject: "Social Sc.", teacher: "NITIN GADKARI" },
+          "VII - A": { subject: "Hindi", teacher: "HARISHANKAR TIWARI" },
+          "VIII - A": { subject: "Science", teacher: "DR. MEENAKSHI IYER" },
+          "IX - A": { subject: "Mathematics", teacher: "VIKRAMADITYA RAO" },
+          "X - A": { subject: "Economics", teacher: "SWATI AGARWAL" },
+          "XI - B": { subject: "Business Studies", teacher: "MR. ASHOK" },
+          "XII - B": { subject: "Business Studies", teacher: "MR. ASHOK" }
+        },
+        {
+          "NUR - A": { subject: "Art", teacher: "RUSHALI MISHRA (NUR)" },
+          "LKG - A": { subject: "Activity", teacher: "RUSHALI MISHRA (LKG)" },
+          "UKG - A": { subject: "Activity", teacher: "SANYUKTA VERMA" },
+          "I - A": { subject: "Maths", teacher: "RABITA SINHA" },
+          "II - A": { subject: "Art & Craft", teacher: "PRIYA DESHMUKH" },
+          "III - A": { subject: "English", teacher: "REKHA MENON" },
+          "IV - A": { subject: "Hindi", teacher: "VANDANA MISHRA" },
+          "V - A": { subject: "Mathematics", teacher: "PRADEEP S. NEGI" },
+          "VI - A": { subject: "Computer", teacher: "RITU BHARDWAJ" },
+          "VII - A": { subject: "Science", teacher: "SHALINI SRIVASTAVA" },
+          "VIII - A": { subject: "Mathematics", teacher: "ANJALI SAXENA" },
+          "IX - A": { subject: "Science", teacher: "SANDEEP KULKARNI" },
+          "X - A": { subject: "History", teacher: "DINESH C. JOSHI" },
+          "XI - B": { subject: "Economics", teacher: "MR. RAJESH GUPTA" },
+          "XII - B": { subject: "Economics", teacher: "MR. RAJESH GUPTA" }
+        },
+        {
+          "NUR - A": { subject: "Eng W.S", teacher: "RUSHALI MISHRA (NUR)" },
+          "LKG - A": { subject: "Cartoon Movie", teacher: "RUSHALI MISHRA (LKG)" },
+          "UKG - A": { subject: "Activity", teacher: "SANYUKTA VERMA" },
+          "I - A": { subject: "Story", teacher: "RABITA SINHA" },
+          "II - A": { subject: "Music", teacher: "TARUN CHATTERJEE" },
+          "III - A": { subject: "Computer", teacher: "RITU BHARDWAJ" },
+          "IV - A": { subject: "GAMES", teacher: "YOGESHWAR DUTT" },
+          "V - A": { subject: "English", teacher: "KAVITA NAIR" },
+          "VI - A": { subject: "Sanskrit", teacher: "RAMESHWAR DAYAL" },
+          "VII - A": { subject: "Music", teacher: "TARUN CHATTERJEE" },
+          "VIII - A": { subject: "Social Sc.", teacher: "ALOK NATH PANDEY" },
+          "IX - A": { subject: "English", teacher: "DEEPIKA CHAUHAN" },
+          "X - A": { subject: "English", teacher: "MRS. SUNITA VERMA" },
+          "XI - B": { subject: "English", teacher: "MRS. SUNITA VERMA" },
+          "XII - B": { subject: "Physics", teacher: "SANDEEP KULKARNI" }
+        },
+        {
+          "NUR - A": { subject: "Cartoon Movie", teacher: "RUSHALI MISHRA (NUR)" },
+          "LKG - A": { subject: "Art", teacher: "RUSHALI MISHRA (LKG)" },
+          "UKG - A": { subject: "Cartoon Movie", teacher: "SANYUKTA VERMA" },
+          "I - A": { subject: "M.T", teacher: "RABITA SINHA" },
+          "II - A": { subject: "EVS", teacher: "SHALINI SRIVASTAVA" },
+          "III - A": { subject: "Hindi", teacher: "HARISHANKAR TIWARI" },
+          "IV - A": { subject: "Mathematics", teacher: "ANJALI SAXENA" },
+          "V - A": { subject: "GAMES", teacher: "MR. LAKHAN SINGH" },
+          "VI - A": { subject: "English", teacher: "KAVITA NAIR" },
+          "VII - A": { subject: "Geography", teacher: "ALOK NATH PANDEY" },
+          "VIII - A": { subject: "Hindi", teacher: "HARISHANKAR TIWARI" },
+          "IX - A": { subject: "Social Sc.", teacher: "DINESH C. JOSHI" },
+          "X - A": { subject: "Science", teacher: "MR. SURENDRA P. SINGH" },
+          "XI - B": { subject: "Political Science", teacher: "MR. NITIN GADKARI" },
+          "XII - B": { subject: "Biology", teacher: "SHALINI SRIVASTAVA" }
+        },
+        {
+          "NUR - A": { subject: "Balgeet", teacher: "RUSHALI MISHRA (NUR)" },
+          "LKG - A": { subject: "-", teacher: "" },
+          "UKG - A": { subject: "Maths Workbook", teacher: "SANYUKTA VERMA" },
+          "I - A": { subject: "G.K.", teacher: "RABITA SINHA" },
+          "II - A": { subject: "Story", teacher: "REKHA MENON" },
+          "III - A": { subject: "G.K.", teacher: "NITIN GADKARI" },
+          "IV - A": { subject: "Drawing", teacher: "PRIYA DESHMUKH" },
+          "V - A": { subject: "Hindi", teacher: "VANDANA MISHRA" },
+          "VI - A": { subject: "Mathematics", teacher: "ANJALI SAXENA" },
+          "VII - A": { subject: "Computer", teacher: "RITU BHARDWAJ" },
+          "VIII - A": { subject: "LIBRARY", teacher: "MR. AMIT KUMAR" },
+          "IX - A": { subject: "LIBRARY", teacher: "GARIMA CHOUDHARY" },
+          "X - A": { subject: "Hindi", teacher: "VANDANA MISHRA" },
+          "XI - B": { subject: "Physics", teacher: "MR. SURENDRA P. SINGH" },
+          "XII - B": { subject: "English", teacher: "DEEPIKA CHAUHAN" }
+        },
+        {
+          "NUR - A": { subject: "-", teacher: "" },
+          "LKG - A": { subject: "-", teacher: "" },
+          "UKG - A": { subject: "-", teacher: "" },
+          "I - A": { subject: "G.K.", teacher: "RABITA SINHA" },
+          "II - A": { subject: "-", teacher: "" },
+          "III - A": { subject: "GAMES", teacher: "MANOJ KUMAR VERMA" },
+          "IV - A": { subject: "EVS", teacher: "SHALINI SRIVASTAVA" },
+          "V - A": { subject: "Art & Craft", teacher: "PRIYA DESHMUKH" },
+          "VI - A": { subject: "Science", teacher: "DR. MEENAKSHI IYER" },
+          "VII - A": { subject: "English", teacher: "REKHA MENON" },
+          "VIII - A": { subject: "GAMES", teacher: "MR. LAKHAN SINGH" },
+          "IX - A": { subject: "Chemistry", teacher: "MR. ABHINAV BINDRA" },
+          "X - A": { subject: "Counseling", teacher: "MS. KOMAL ARORA" },
+          "XI - B": { subject: "GAMES", teacher: "MR. MANOJ K. VERMA" },
+          "XII - B": { subject: "Chemistry", teacher: "MR. AJAY K. SHARMA" }
+        },
+        {
+          "NUR - A": { subject: "-", teacher: "" },
+          "LKG - A": { subject: "-", teacher: "" },
+          "UKG - A": { subject: "-", teacher: "" },
+          "I - A": { subject: "Revision", teacher: "RABITA SINHA" },
+          "II - A": { subject: "-", teacher: "" },
+          "III - A": { subject: "-", teacher: "" },
+          "IV - A": { subject: "Revision", teacher: "KAVITA NAIR" },
+          "V - A": { subject: "Revision", teacher: "PRADEEP S. NEGI" },
+          "VI - A": { subject: "LIBRARY", teacher: "KAVITA NAIR" },
+          "VII - A": { subject: "GAMES", teacher: "MR. LAKHAN SINGH" },
+          "VIII - A": { subject: "Sanskrit", teacher: "RAMESHWAR DAYAL" },
+          "IX - A": { subject: "Economics", teacher: "SWATI AGARWAL" },
+          "X - A": { subject: "Revision", teacher: "MRS. SUNITA VERMA" },
+          "XI - B": { subject: "LIBRARY", teacher: "MS. GARIMA CHOUDHARY" },
+          "XII - B": { subject: "Entrepreneurship", teacher: "POOJA MALHOTRA" }
+        }
+      ];
+
+      function buildClassData() {
+        const store = {};
+        DAYS.forEach((day, dIdx) => {
+          store[day] = Array.from({ length: PERIOD_COUNT }, (_, pIdx) => {
+            const sourceIdx = day === "Saturday" ? pIdx : (pIdx + dIdx) % PERIOD_COUNT;
+            const rowObj = {};
+            CLASS_COLS.forEach((cls) => {
+              const cell = BASE_SATURDAY_CLASSES[sourceIdx][cls.id] || { subject: "-", teacher: "" };
+              rowObj[cls.id] = { subject: cell.subject, teacher: cell.teacher };
+            });
+            return rowObj;
+          });
+        });
+        return store;
+      }
+
+      // =========================================================================
+      // 3. APPLICATION STATE
+      // =========================================================================
+      const STORAGE_KEY = "schoolmitra_erp_timetable_v1";
+
+      const state = {
+        view: "teachers", // 'teachers' | 'classes' | 'daily' | 'free' | 'workload'
+        timetable: "TIME TABLE I_XII",
+        shift: "ALL Shift",
+        day: "Wednesday",
+        dailyDate: "2026-11-19",
+        dailyMode: "Teacher",
+        absenteeId: 4, // Primary selected absentee (Mr. Ashok)
+        absenteeIdsByDate: {}, // key: `${date}|${timetable}` -> Array of teacher IDs
+        freeOnly: false,
+        sameStreamOnly: false,
+        maxDailyCap: 6,
+        freeStreamFilter: "ALL",
+        freeUnderCapOnly: false,
+        dailySubs: {}, // key: `${date}|${timetable}|${absenteeId}` -> Array(8)
+        search: "",
+        sortDir: "none", // 'none' | 'asc' | 'desc'
+        page: 1,
+        pageSize: 10,
+        visiblePeriods: [true, true, true, true, true, true, true, true],
+        visibleClasses: Object.fromEntries(CLASS_COLS.map((c) => [c.id, true])),
+        periodTimings: [...DEFAULT_PERIOD_TIMINGS],
+        recessTiming: DEFAULT_RECESS_TIMING,
+        teacherData: buildTeacherData(),
+        classData: buildClassData(),
+        editTarget: null,
+        modalCopyText: ""
+      };
+
+      function loadPersistedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const saved = JSON.parse(raw);
+          if (saved.teacherData) state.teacherData = saved.teacherData;
+          if (saved.classData) state.classData = saved.classData;
+          if (saved.dailySubs) state.dailySubs = saved.dailySubs;
+          if (saved.absenteeIdsByDate) state.absenteeIdsByDate = saved.absenteeIdsByDate;
+          if (Array.isArray(saved.periodTimings) && saved.periodTimings.length === PERIOD_COUNT) {
+            state.periodTimings = saved.periodTimings;
+          }
+          if (saved.recessTiming) state.recessTiming = saved.recessTiming;
+        } catch (err) {
+          // Ignore storage read errors in restricted sandboxes
+        }
+      }
+
+      function savePersistedState() {
+        try {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              teacherData: state.teacherData,
+              classData: state.classData,
+              dailySubs: state.dailySubs,
+              absenteeIdsByDate: state.absenteeIdsByDate,
+              periodTimings: state.periodTimings,
+              recessTiming: state.recessTiming
+            })
+          );
+        } catch (err) {
+          // Ignore quota/sandbox errors
+        }
+      }
+
+      loadPersistedState();
+
+      const el = (id) => document.getElementById(id);
+
+      const dom = {
+        crumbMidSep: el("crumb-mid-sep"),
+        crumbMidLink: el("crumb-mid-link"),
+        crumbCurrent: el("crumb-current"),
+        tabTeachers: el("tab-teachers"),
+        tabClasses: el("tab-classes"),
+        tabDaily: el("tab-daily"),
+        tabFree: el("tab-free"),
+        tabWorkload: el("tab-workload"),
+        pageTitle: el("page-title"),
+        pageSubtitle: el("page-subtitle"),
+        statDot1: el("stat-dot-1"),
+        statLabel1: el("stat-label-1"),
+        statVal1: el("stat-val-1"),
+        statDot2: el("stat-dot-2"),
+        statLabel2: el("stat-label-2"),
+        statVal2: el("stat-val-2"),
+        contextSelect: el("context-select"),
+        daySelect: el("day-select"),
+        dailyControls: el("daily-controls"),
+        dailyDate: el("daily-date"),
+        dailyDayChip: el("daily-day-chip"),
+        dailyModeSelect: el("daily-mode-select"),
+        absenteeSelect: el("absentee-select"),
+        addPeriodBtn: el("add-period-btn"),
+        searchInput: el("search-input"),
+        clearSearchBtn: el("clear-search-btn"),
+        timingsBtn: el("timings-btn"),
+        colVisWrap: el("col-vis-wrap"),
+        colVisBtn: el("col-vis-btn"),
+        colVisBadge: el("col-vis-badge"),
+        colVisHeading: el("col-vis-heading"),
+        colVisPopover: el("col-vis-popover"),
+        colVisList: el("col-vis-list"),
+        showAllColsBtn: el("show-all-cols-btn"),
+        resetSampleBtn: el("reset-sample-btn"),
+        printBtn: el("print-btn"),
+        proxySlipBtn: el("proxy-slip-btn"),
+        exportCsvBtn: el("export-csv-btn"),
+        exportPdfBtn: el("export-pdf-btn"),
+        clashBanner: el("clash-banner"),
+        clashBannerText: el("clash-banner-text"),
+        dismissClashBtn: el("dismiss-clash-btn"),
+        freeSubbar: el("free-subbar"),
+        freeStreamSelect: el("free-stream-select"),
+        freeUnderCapCheckbox: el("free-under-cap-checkbox"),
+        freeMaxCapSelect: el("free-max-cap-select"),
+        copyAllFreeBtn: el("copy-all-free-btn"),
+        dailySubbar: el("daily-subbar"),
+        freeOnlyCheckbox: el("free-only-checkbox"),
+        sameStreamCheckbox: el("same-stream-checkbox"),
+        maxCapSelect: el("max-cap-select"),
+        addAbsenteeBtn: el("add-absentee-btn"),
+        clearSubsBtn: el("clear-subs-btn"),
+        autoAssignBtn: el("auto-assign-btn"),
+        multiAbsenteeBar: el("multi-absentee-bar"),
+        absenteeChipList: el("absentee-chip-list"),
+        tableWrap: el("table-wrap"),
+        tableHeadRow: el("table-head-row"),
+        tableBody: el("table-body"),
+        emptyBox: el("empty-box"),
+        emptyResetBtn: el("empty-reset-btn"),
+        paginationInfo: el("pagination-info"),
+        pageSizeSelect: el("page-size-select"),
+        paginationControls: el("pagination-controls"),
+        editModal: el("edit-modal"),
+        editModalTitle: el("edit-modal-title"),
+        editMetaTop: el("edit-meta-top"),
+        editMetaVal: el("edit-meta-val"),
+        editPrimaryLabel: el("edit-primary-label"),
+        editPrimaryInput: el("edit-primary-input"),
+        editTeacherGroup: el("edit-teacher-group"),
+        editTeacherInput: el("edit-teacher-input"),
+        editPresets: el("edit-presets"),
+        editModalForm: el("edit-modal-form"),
+        addPeriodModal: el("add-period-modal"),
+        addPeriodForm: el("add-period-form"),
+        apPeriod: el("ap-period"),
+        apSubject: el("ap-subject"),
+        apSubstitute: el("ap-substitute"),
+        timingsModal: el("timings-modal"),
+        timingsForm: el("timings-form"),
+        timingsGrid: el("timings-grid"),
+        weeklyCardModal: el("weekly-card-modal"),
+        weeklyCardTitle: el("weekly-card-title"),
+        weeklyCardBody: el("weekly-card-body"),
+        toastStack: el("toast-stack")
+      };
+
+      // =========================================================================
+      // 4. UTILITIES & STYLING HELPERS
+      // =========================================================================
+      function esc(str) {
+        return String(str ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function showToast(msg) {
+        if (!dom.toastStack) return;
+        const item = document.createElement("div");
+        item.className = "toast-item";
+        item.innerHTML = `<span style="color:#34d399;font-weight:700;">&#10003;</span><span>${esc(msg)}</span>`;
+        dom.toastStack.appendChild(item);
+        setTimeout(() => {
+          item.style.opacity = "0";
+          item.style.transition = "opacity 0.25s ease";
+          setTimeout(() => item.remove(), 260);
+        }, 2600);
+      }
+
+      function getPillClass(text) {
+        const u = String(text ?? "").toUpperCase();
+        if (u.includes("LIBRARY") || u.includes("ACCOUNTANCY") || u.includes("BUSINESS") || u.includes("ECONOMICS") || u.includes("COMMERCE")) {
+          return "pill-sky";
+        }
+        if (u.includes("GAMES") || u.includes("SPORTS") || u.includes("ART") || u.includes("MUSIC") || u.includes("ACTIVITY") || u.includes("CARTOON")) {
+          return "pill-amber";
+        }
+        if (u.includes("MATH") || u.includes("PHYSICS") || u.includes("CHEMISTRY") || u.includes("BIOLOGY") || u.includes("SCIENCE") || u.includes("COMPUTER")) {
+          return "pill-violet";
+        }
+        if (u.includes("POLITICAL") || u.includes("HISTORY") || u.includes("GEOGRAPHY") || u.includes("SOCIAL") || u.includes("PSYCHOLOGY")) {
+          return "pill-rose";
+        }
+        if (u.includes("ENGLISH") || u.includes("HINDI") || u.includes("SANSKRIT")) {
+          return "pill-indigo";
+        }
+        return "pill-emerald";
+      }
+
+      function getWeekdayFromISO(isoStr) {
+        if (!isoStr) return "Thursday";
+        const [y, m, d] = isoStr.split("-").map(Number);
+        if (!y || !m || !d) return "Thursday";
+        const dt = new Date(y, m - 1, d);
+        const names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const name = names[dt.getDay()];
+        return name === "Sunday" ? "Monday" : name;
+      }
+
+      function formatDisplayDate(isoStr) {
+        if (!isoStr) return "19/11/2026";
+        const [y, m, d] = isoStr.split("-");
+        return d && m && y ? `${d}/${m}/${y}` : isoStr;
+      }
+
+      function parseSlotDetails(slotStr) {
+        const s = String(slotStr ?? "").trim();
+        if (!s || s === "-") return { subject: "", classSection: "" };
+        const match = s.match(/^(.*?)\s*\[([^\]]+)\]\s*$/);
+        if (match) {
+          return { subject: match[1].trim(), classSection: match[2].trim() };
+        }
+        return { subject: s, classSection: "" };
+      }
+
+      function getAcademicStream(label) {
+        const u = String(label ?? "").toUpperCase();
+        if (
+          u.includes("ACCOUNTANCY") ||
+          u.includes("BUSINESS") ||
+          u.includes("ECONOMICS") ||
+          u.includes("ENTREPRENEURSHIP") ||
+          u.includes("COMMERCE")
+        ) {
+          return "Commerce";
+        }
+        if (
+          u.includes("PHYSICS") ||
+          u.includes("CHEMISTRY") ||
+          u.includes("BIOLOGY") ||
+          u.includes("SCIENCE") ||
+          u.includes("MATH") ||
+          u.includes("COMPUTER") ||
+          u.includes("INFORMATICS")
+        ) {
+          return "Science";
+        }
+        if (
+          u.includes("HISTORY") ||
+          u.includes("POLITICAL") ||
+          u.includes("GEOGRAPHY") ||
+          u.includes("SOCIAL") ||
+          u.includes("PSYCHOLOGY") ||
+          u.includes("HUMANITIES") ||
+          u.includes("COUNSELING")
+        ) {
+          return "Humanities";
+        }
+        if (
+          u.includes("ENGLISH") ||
+          u.includes("HINDI") ||
+          u.includes("SANSKRIT") ||
+          u.includes("LIBRARY")
+        ) {
+          return "Languages";
+        }
+        return "Primary / Activity";
+      }
+
+      function getDailySubsArray(absId) {
+        const targetAbsId = typeof absId === "number" ? absId : state.absenteeId;
+        const key = `${state.dailyDate}|${state.timetable}|${targetAbsId}`;
+        if (!state.dailySubs[key]) {
+          state.dailySubs[key] = Array(PERIOD_COUNT).fill(null);
+        }
+        return state.dailySubs[key];
+      }
+
+      function getStreamPillClass(stream) {
+        if (stream === "Commerce") return "pill-sky";
+        if (stream === "Science") return "pill-violet";
+        if (stream === "Humanities") return "pill-rose";
+        if (stream === "Languages") return "pill-amber";
+        return "pill-emerald";
+      }
+
+      function getActiveClassCols() {
+        return CLASS_COLS.filter((c) => {
+          const matchShift = state.shift === "ALL Shift" || c.shift === state.shift;
+          return matchShift && Boolean(state.visibleClasses[c.id]);
+        });
+      }
+
+      function renderColumnVisibility() {
+        if (!dom.colVisList) return;
+        dom.colVisList.innerHTML = "";
+
+        if (state.view === "teachers" || state.view === "daily") {
+          dom.colVisHeading.textContent = "Toggle Periods";
+          let visCount = 0;
+          for (let i = 0; i < PERIOD_COUNT; i++) {
+            const checked = Boolean(state.visiblePeriods[i]);
+            if (checked) visCount++;
+            const lbl = document.createElement("label");
+            lbl.className = "col-toggle-item";
+            lbl.innerHTML = `
+              <input type="checkbox" data-col="${i}" ${checked ? "checked" : ""} />
+              <div>
+                <div style="font-weight:600;color:#0f172a;">Period ${i + 1}</div>
+                <div style="font-size:10px;color:#64748b;">${esc(state.periodTimings[i])}</div>
+              </div>
+            `;
+            dom.colVisList.appendChild(lbl);
+          }
+          dom.colVisBadge.textContent = `${visCount}/${PERIOD_COUNT}`;
+        } else if (state.view === "classes") {
+          dom.colVisHeading.textContent = "Toggle Classes";
+          const shiftCols = CLASS_COLS.filter((c) => state.shift === "ALL Shift" || c.shift === state.shift);
+          let visCount = 0;
+          shiftCols.forEach((cls) => {
+            const checked = Boolean(state.visibleClasses[cls.id]);
+            if (checked) visCount++;
+            const lbl = document.createElement("label");
+            lbl.className = "col-toggle-item";
+            lbl.innerHTML = `
+              <input type="checkbox" data-col="${esc(cls.id)}" ${checked ? "checked" : ""} />
+              <div>
+                <div style="font-weight:600;color:#0f172a;">${esc(cls.label)}</div>
+                <div style="font-size:10px;color:#64748b;">${esc(cls.shift)}</div>
+              </div>
+            `;
+            dom.colVisList.appendChild(lbl);
+          });
+          dom.colVisBadge.textContent = `${visCount}/${shiftCols.length}`;
+        }
+      }
+
+      function getFilteredTeachers() {
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        const q = state.search.trim().toLowerCase();
+        let list = allDay.filter((t) => {
+          if (!q) return true;
+          const mName = t.name.toLowerCase().includes(q) || t.dept.toLowerCase().includes(q);
+          const mSlot = t.periods.some((p, i) => state.visiblePeriods[i] && p !== "-" && p.toLowerCase().includes(q));
+          return mName || mSlot;
+        });
+
+        if (state.sortDir !== "none") {
+          list = [...list].sort((a, b) => {
+            const cmp = a.name.localeCompare(b.name);
+            return state.sortDir === "asc" ? cmp : -cmp;
+          });
+        }
+        return list;
+      }
+
+      function getFilteredClassRows() {
+        const dayRows = state.classData[state.day] || [];
+        const cols = getActiveClassCols();
+        const q = state.search.trim().toLowerCase();
+
+        let rows = dayRows.map((cells, pIdx) => ({
+          pIdx,
+          label: `Period ${pIdx + 1}`,
+          timing: state.periodTimings[pIdx],
+          cells
+        }));
+
+        if (q) {
+          rows = rows.filter((r) => {
+            const mPeriod = r.label.toLowerCase().includes(q) || r.timing.toLowerCase().includes(q);
+            const mCell = cols.some((c) => {
+              const cell = r.cells[c.id];
+              if (!cell || cell.subject === "-") return false;
+              return cell.subject.toLowerCase().includes(q) || (cell.teacher && cell.teacher.toLowerCase().includes(q));
+            });
+            return mPeriod || mCell;
+          });
+        }
+
+        if (state.sortDir === "desc") {
+          rows = [...rows].reverse();
+        }
+        return rows;
+      }
+
+      function getFilteredFreePeriodRows() {
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        const q = state.search.trim().toLowerCase();
+        const absIds = getAbsenteeIdsForDate();
+
+        let rows = Array.from({ length: PERIOD_COUNT }, (_, pIdx) => {
+          const freeTeachers = allDay
+            .filter((t) => !absIds.includes(t.id) && t.periods[pIdx] === "-")
+            .map((t) => {
+              const stream = getAcademicStream(t.dept);
+              const regularCount = t.periods.filter((p) => p !== "-").length;
+              const subCount = absIds.reduce((acc, aId) => {
+                const subs = getDailySubsArray(aId);
+                return acc + subs.filter((s) => s && s.subId === t.id).length;
+              }, 0);
+              return {
+                id: t.id,
+                name: t.name,
+                dept: t.dept,
+                stream,
+                busyCount: regularCount + subCount
+              };
+            })
+            .filter((t) => {
+              if (state.freeStreamFilter !== "ALL" && t.stream !== state.freeStreamFilter) return false;
+              if (state.freeUnderCapOnly && t.busyCount >= state.maxDailyCap) return false;
+              if (q) {
+                const matchPeriod = `period ${pIdx + 1}`.includes(q) || state.periodTimings[pIdx].toLowerCase().includes(q);
+                const matchTeacher = t.name.toLowerCase().includes(q) || t.dept.toLowerCase().includes(q) || t.stream.toLowerCase().includes(q);
+                return matchPeriod || matchTeacher;
+              }
+              return true;
+            })
+            .sort((a, b) => a.busyCount - b.busyCount || a.name.localeCompare(b.name));
+
+          return {
+            pIdx,
+            label: `Period ${pIdx + 1}`,
+            timing: state.periodTimings[pIdx],
+            freeTeachers
+          };
+        });
+
+        if (state.sortDir === "desc") {
+          rows = [...rows].reverse();
+        }
+        return rows;
+      }
+
+      function renderFreePeriodsView(sortArrow) {
+        const filtered = getFilteredFreePeriodRows();
+        const total = filtered.length;
+        const pageSize = state.pageSize === "all" ? Math.max(total, 1) : Number(state.pageSize);
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (state.page > totalPages) state.page = totalPages;
+
+        const startIdx = (state.page - 1) * pageSize;
+        const endIdx = state.pageSize === "all" ? total : Math.min(startIdx + pageSize, total);
+        const rows = filtered.slice(startIdx, endIdx);
+
+        const totalOpenSlots = filtered.reduce((acc, r) => acc + r.freeTeachers.length, 0);
+        const avgFreePerPeriod = total > 0 ? Math.round(totalOpenSlots / total) : 0;
+
+        dom.statDot1.className = "dot dot-emerald";
+        dom.statLabel1.textContent = "Avg Free / Period:";
+        dom.statVal1.textContent = `${avgFreePerPeriod} Faculty`;
+        dom.statDot2.className = "dot dot-indigo";
+        dom.statLabel2.textContent = `Total Open Slots (${state.day}):`;
+        dom.statVal2.textContent = String(totalOpenSlots);
+
+        dom.tableHeadRow.innerHTML = `
+          <th class="sticky-col sortable" id="th-sort-primary" style="min-width:175px;">
+            Period<span style="color:#4f46e5;">${sortArrow}</span>
+            <span class="th-sub">Schedule Timing</span>
+          </th>
+          <th style="width:100%;">
+            Free Teacher Detail
+            <span class="th-sub">Sorted by lowest daily workload • Click a badge for quick proxy</span>
+          </th>
+        `;
+        bindSortHeader();
+
+        if (total === 0) {
+          dom.tableBody.innerHTML = "";
+          dom.emptyBox.classList.remove("hidden");
+        } else {
+          dom.emptyBox.classList.add("hidden");
+          let bodyHTML = "";
+          rows.forEach((r) => {
+            const pillsHTML =
+              r.freeTeachers.length === 0
+                ? `<span class="free-dash">No faculty free under active filter</span>`
+                : r.freeTeachers
+                    .map((t) => {
+                      const overCap = t.busyCount >= state.maxDailyCap;
+                      return `
+                        <button type="button"
+                          class="free-teacher-pill ${getStreamPillClass(t.stream)} ${overCap ? "over-cap-pill" : ""}"
+                          data-quick-proxy-tid="${t.id}"
+                          data-pidx="${r.pIdx}"
+                          title="Assign ${esc(t.name)} as proxy in Period ${r.pIdx + 1}">
+                          <span>${esc(t.name)}</span>
+                          <span class="pill-dept-tag">${esc(t.dept)}</span>
+                          <span class="pill-load-tag">${t.busyCount}/8</span>
+                        </button>
+                      `;
+                    })
+                    .join("");
+
+            bodyHTML += `
+              <tr>
+                <td class="sticky-col" style="min-width:175px;">
+                  <div class="teacher-name">${esc(r.label)}</div>
+                  <div class="dept-tag">${esc(r.timing)}</div>
+                </td>
+                <td>
+                  <div class="free-period-cell">
+                    <div class="free-period-meta">
+                      <span class="free-count-badge">${r.freeTeachers.length} Free Faculty</span>
+                      <button type="button" class="copy-list-btn" data-copy-pidx="${r.pIdx}">Copy List</button>
+                    </div>
+                    <div class="free-pills-wrap">${pillsHTML}</div>
+                  </div>
+                </td>
+              </tr>
+            `;
+
+            if (r.pIdx === 3 && state.sortDir !== "desc") {
+              bodyHTML += `
+                <tr class="recess-row">
+                  <td class="sticky-col" style="min-width:175px;">
+                    <span class="recess-tag">Recess Break</span>
+                    <div class="dept-tag" style="color:#b45309;margin-top:2px;">${esc(state.recessTiming)}</div>
+                  </td>
+                  <td style="color:#92400e;font-weight:600;font-size:12px;">
+                    Mid-Day Recess &amp; Lunch Break (${esc(state.recessTiming)}) — All Faculty Free
+                  </td>
+                </tr>
+              `;
+            }
+          });
+          dom.tableBody.innerHTML = bodyHTML;
+        }
+
+        renderPagination(total, startIdx, endIdx, totalPages);
+      }
+
+      function renderWorkloadView(sortArrow) {
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        const q = state.search.trim().toLowerCase();
+        const absIds = getAbsenteeIdsForDate();
+
+        let rows = allDay
+          .map((t) => {
+            let weeklyAssigned = 0;
+            DAYS.forEach((d) => {
+              const dayRow = (state.teacherData[state.timetable]?.[d] || []).find((x) => x.id === t.id);
+              if (dayRow) {
+                weeklyAssigned += dayRow.periods.filter((p) => p !== "-").length;
+              }
+            });
+            const weeklyFree = DAYS.length * PERIOD_COUNT - weeklyAssigned;
+            const todayLoad = t.periods.filter((p) => p !== "-").length;
+            const activeProxies = absIds.reduce((acc, aId) => {
+              const subs = getDailySubsArray(aId);
+              return acc + subs.filter((s) => s && s.subId === t.id).length;
+            }, 0);
+            return {
+              id: t.id,
+              name: t.name,
+              dept: t.dept,
+              stream: getAcademicStream(t.dept),
+              weeklyAssigned,
+              weeklyFree,
+              todayLoad,
+              activeProxies
+            };
+          })
+          .filter((r) => {
+            if (!q) return true;
+            return (
+              r.name.toLowerCase().includes(q) ||
+              r.dept.toLowerCase().includes(q) ||
+              r.stream.toLowerCase().includes(q)
+            );
+          });
+
+        if (state.sortDir !== "none") {
+          rows.sort((a, b) => {
+            const cmp = a.name.localeCompare(b.name);
+            return state.sortDir === "asc" ? cmp : -cmp;
+          });
+        }
+
+        const total = rows.length;
+        const pageSize = state.pageSize === "all" ? Math.max(total, 1) : Number(state.pageSize);
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (state.page > totalPages) state.page = totalPages;
+
+        const startIdx = (state.page - 1) * pageSize;
+        const endIdx = state.pageSize === "all" ? total : Math.min(startIdx + pageSize, total);
+        const pageRows = rows.slice(startIdx, endIdx);
+
+        const avgWeekly = total > 0 ? Math.round(rows.reduce((s, r) => s + r.weeklyAssigned, 0) / total) : 0;
+        const totalProxies = rows.reduce((s, r) => s + r.activeProxies, 0);
+
+        dom.statDot1.className = "dot dot-indigo";
+        dom.statLabel1.textContent = "Avg Weekly Load:";
+        dom.statVal1.textContent = `${avgWeekly} / 48 Periods`;
+        dom.statDot2.className = "dot dot-emerald";
+        dom.statLabel2.textContent = "Active Date Proxies:";
+        dom.statVal2.textContent = String(totalProxies);
+
+        dom.tableHeadRow.innerHTML = `
+          <th class="sticky-col sortable" id="th-sort-primary">
+            Faculty Member<span style="color:#4f46e5;">${sortArrow}</span>
+            <span class="th-sub">Department &amp; Stream</span>
+          </th>
+          <th>Weekly Assigned<span class="th-sub">Mon–Sat (Out of 48)</span></th>
+          <th>Weekly Free<span class="th-sub">Available Slots</span></th>
+          <th>${esc(state.day)} Load<span class="th-sub">Daily Periods</span></th>
+          <th>Active Proxies<span class="th-sub">${esc(formatDisplayDate(state.dailyDate))}</span></th>
+          <th>Personal Schedule<span class="th-sub">Printable Card</span></th>
+        `;
+        bindSortHeader();
+
+        if (total === 0) {
+          dom.tableBody.innerHTML = "";
+          dom.emptyBox.classList.remove("hidden");
+        } else {
+          dom.emptyBox.classList.add("hidden");
+          dom.tableBody.innerHTML = pageRows
+            .map((r) => {
+              const pct = Math.round((r.weeklyAssigned / 48) * 100);
+              return `
+                <tr>
+                  <td class="sticky-col">
+                    <div class="teacher-name">${esc(r.name)}</div>
+                    <div class="dept-tag">${esc(r.dept)} &bull; ${esc(r.stream)}</div>
+                  </td>
+                  <td>
+                    <span class="subject-pill ${pct >= 70 ? "pill-amber" : "pill-indigo"}">${r.weeklyAssigned} / 48 (${pct}%)</span>
+                  </td>
+                  <td><span class="load-badge">${r.weeklyFree} Free</span></td>
+                  <td><span class="load-badge ${r.todayLoad >= state.maxDailyCap ? "at-cap" : ""}">${r.todayLoad} / 8</span></td>
+                  <td><span class="load-badge ${r.activeProxies > 0 ? "high" : ""}">${r.activeProxies} Proxy</span></td>
+                  <td>
+                    <button type="button" class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-open-weekly-tid="${r.id}">
+                      View Weekly Card
+                    </button>
+                  </td>
+                </tr>
+              `;
+            })
+            .join("");
+        }
+
+        renderPagination(total, startIdx, endIdx, totalPages);
+      }
+
+      // =========================================================================
+      // 8. MULTI-ABSENTEE & CLASH DETECTION HELPERS
+      // =========================================================================
+      function getAbsenteeIdsForDate() {
+        const key = `${state.dailyDate}|${state.timetable}`;
+        if (!Array.isArray(state.absenteeIdsByDate[key]) || state.absenteeIdsByDate[key].length === 0) {
+          state.absenteeIdsByDate[key] = [state.absenteeId || 4];
+        }
+        if (!state.absenteeIdsByDate[key].includes(state.absenteeId)) {
+          state.absenteeId = state.absenteeIdsByDate[key][0];
+        }
+        return state.absenteeIdsByDate[key];
+      }
+
+      function renderMultiAbsenteeBar() {
+        if (!dom.multiAbsenteeBar || !dom.absenteeChipList) return;
+        if (state.view !== "daily") {
+          dom.multiAbsenteeBar.classList.add("hidden");
+          return;
+        }
+        const absIds = getAbsenteeIdsForDate();
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        dom.multiAbsenteeBar.classList.remove("hidden");
+
+        dom.absenteeChipList.innerHTML = absIds
+          .map((id) => {
+            const t = allDay.find((x) => x.id === id);
+            const name = t ? t.name : `Teacher #${id}`;
+            const isActive = id === state.absenteeId;
+            return `
+              <span class="absentee-chip" style="${isActive ? "background:#4f46e5;color:#fff;border-color:#4f46e5;" : ""}">
+                <span style="cursor:pointer;" data-switch-abs="${id}">${esc(name)}</span>
+                ${absIds.length > 1 ? `<button type="button" data-remove-abs="${id}" style="${isActive ? "color:#fff;" : ""}" title="Remove absentee">&times;</button>` : ""}
+              </span>
+            `;
+          })
+          .join("");
+      }
+
+      function detectScheduleClashes() {
+        if (!dom.clashBanner || !dom.clashBannerText) return;
+        const clashes = [];
+
+        if (state.view === "teachers" || state.view === "daily" || state.view === "free") {
+          const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+          for (let p = 0; p < PERIOD_COUNT; p++) {
+            const classMap = {};
+            allDay.forEach((t) => {
+              const parsed = parseSlotDetails(t.periods[p]);
+              if (parsed.classSection) {
+                const sec = parsed.classSection.toUpperCase();
+                if (!classMap[sec]) classMap[sec] = [];
+                classMap[sec].push(`${t.name} (${parsed.subject})`);
+              }
+            });
+            Object.entries(classMap).forEach(([sec, assignees]) => {
+              if (assignees.length > 1) {
+                clashes.push(`Period ${p + 1}: Class [${sec}] double-booked with ${assignees.join(" & ")}`);
+              }
+            });
+          }
+        } else if (state.view === "classes") {
+          const dayRows = state.classData[state.day] || [];
+          dayRows.forEach((cells, pIdx) => {
+            const teacherMap = {};
+            CLASS_COLS.forEach((cls) => {
+              const cell = cells[cls.id];
+              if (cell && cell.subject !== "-" && cell.teacher) {
+                const tName = cell.teacher.trim().toUpperCase();
+                if (!teacherMap[tName]) teacherMap[tName] = [];
+                teacherMap[tName].push(`${cls.label} (${cell.subject})`);
+              }
+            });
+            Object.entries(teacherMap).forEach(([tName, classes]) => {
+              if (classes.length > 1) {
+                clashes.push(`Period ${pIdx + 1}: ${tName} assigned simultaneously to ${classes.join(" & ")}`);
+              }
+            });
+          });
+        }
+
+        if (clashes.length > 0) {
+          dom.clashBannerText.textContent = `Schedule Conflict Detected (${clashes.length}): ${clashes[0]}${clashes.length > 1 ? ` (+${clashes.length - 1} more)` : ""}`;
+          dom.clashBanner.classList.remove("hidden");
+        } else {
+          dom.clashBanner.classList.add("hidden");
+        }
+      }
+
+      // =========================================================================
+      // 9. CORE VIEW & TABLE RENDERING
+      // =========================================================================
+      function bindSortHeader() {
+        const thSort = el("th-sort-primary");
+        if (thSort) {
+          thSort.addEventListener("click", () => {
+            state.sortDir = state.sortDir === "none" ? "asc" : state.sortDir === "asc" ? "desc" : "none";
+            renderTable();
+          });
+        }
+      }
+
+      function renderPagination(total, startIdx, endIdx, totalPages) {
+        if (!dom.paginationInfo || !dom.paginationControls) return;
+        dom.paginationInfo.textContent =
+          total === 0 ? "Showing 0 entries" : `Showing ${startIdx + 1} to ${endIdx} of ${total} entries`;
+
+        if (total <= 1 || state.pageSize === "all") {
+          dom.paginationControls.innerHTML = "";
+          return;
+        }
+
+        let btns = `<button type="button" class="page-btn" data-page="${state.page - 1}" ${state.page <= 1 ? "disabled" : ""}>Prev</button>`;
+        for (let p = 1; p <= totalPages; p++) {
+          btns += `<button type="button" class="page-btn ${p === state.page ? "active" : ""}" data-page="${p}">${p}</button>`;
+        }
+        btns += `<button type="button" class="page-btn" data-page="${state.page + 1}" ${state.page >= totalPages ? "disabled" : ""}>Next</button>`;
+        dom.paginationControls.innerHTML = btns;
+      }
+
+      function renderTeachersView(sortArrow) {
+        const filtered = getFilteredTeachers();
+        const total = filtered.length;
+        const pageSize = state.pageSize === "all" ? Math.max(total, 1) : Number(state.pageSize);
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (state.page > totalPages) state.page = totalPages;
+
+        const startIdx = (state.page - 1) * pageSize;
+        const endIdx = state.pageSize === "all" ? total : Math.min(startIdx + pageSize, total);
+        const rows = filtered.slice(startIdx, endIdx);
+
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        let assignedCount = 0;
+        allDay.forEach((t) => {
+          t.periods.forEach((p, idx) => {
+            if (state.visiblePeriods[idx] && p !== "-") assignedCount++;
+          });
+        });
+
+        dom.statDot1.className = "dot dot-emerald";
+        dom.statLabel1.textContent = "Active Faculty:";
+        dom.statVal1.textContent = String(allDay.length);
+        dom.statDot2.className = "dot dot-indigo";
+        dom.statLabel2.textContent = `Assigned Slots (${state.day}):`;
+        dom.statVal2.textContent = String(assignedCount);
+
+        let headHTML = `
+          <th class="sticky-col sortable" id="th-sort-primary">
+            Teacher's Name<span style="color:#4f46e5;">${sortArrow}</span>
+            <span class="th-sub">Department &amp; Daily Load</span>
+          </th>
+        `;
+        for (let i = 0; i < PERIOD_COUNT; i++) {
+          if (!state.visiblePeriods[i]) continue;
+          headHTML += `
+            <th>
+              Period ${i + 1}
+              <span class="th-sub">${esc(state.periodTimings[i])}</span>
+            </th>
+          `;
+        }
+        dom.tableHeadRow.innerHTML = headHTML;
+        bindSortHeader();
+
+        if (total === 0) {
+          dom.tableBody.innerHTML = "";
+          dom.emptyBox.classList.remove("hidden");
+        } else {
+          dom.emptyBox.classList.add("hidden");
+          dom.tableBody.innerHTML = rows
+            .map((t) => {
+              const load = t.periods.filter((p) => p !== "-").length;
+              let cellsHTML = "";
+              for (let i = 0; i < PERIOD_COUNT; i++) {
+                if (!state.visiblePeriods[i]) continue;
+                const val = t.periods[i];
+                const inner =
+                  val === "-"
+                    ? `<span class="free-dash">-</span>`
+                    : `<span class="subject-pill ${getPillClass(val)}">${esc(val)}</span>`;
+                cellsHTML += `<td class="editable-cell" data-edit-type="teacher" data-tid="${t.id}" data-pidx="${i}" title="Click to edit Period ${i + 1}">${inner}</td>`;
+              }
+              return `
+                <tr>
+                  <td class="sticky-col">
+                    <div class="teacher-meta">
+                      <div>
+                        <div class="teacher-name">${esc(t.name)}</div>
+                        <div class="dept-tag">${esc(t.dept)}</div>
+                      </div>
+                      <span class="load-badge ${load >= state.maxDailyCap ? "at-cap" : load >= 5 ? "high" : ""}">${load}/8</span>
+                    </div>
+                  </td>
+                  ${cellsHTML}
+                </tr>
+              `;
+            })
+            .join("");
+        }
+
+        renderPagination(total, startIdx, endIdx, totalPages);
+      }
+
+      function renderClassesView(sortArrow) {
+        const cols = getActiveClassCols();
+        const filtered = getFilteredClassRows();
+        const total = filtered.length;
+        const pageSize = state.pageSize === "all" ? Math.max(total, 1) : Number(state.pageSize);
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (state.page > totalPages) state.page = totalPages;
+
+        const startIdx = (state.page - 1) * pageSize;
+        const endIdx = state.pageSize === "all" ? total : Math.min(startIdx + pageSize, total);
+        const rows = filtered.slice(startIdx, endIdx);
+
+        let assignedClasses = 0;
+        (state.classData[state.day] || []).forEach((r) => {
+          cols.forEach((c) => {
+            if (r[c.id] && r[c.id].subject !== "-") assignedClasses++;
+          });
+        });
+
+        dom.statDot1.className = "dot dot-emerald";
+        dom.statLabel1.textContent = "Visible Classes:";
+        dom.statVal1.textContent = String(cols.length);
+        dom.statDot2.className = "dot dot-indigo";
+        dom.statLabel2.textContent = `Scheduled Periods (${state.day}):`;
+        dom.statVal2.textContent = String(assignedClasses);
+
+        let headHTML = `
+          <th class="sticky-col sortable" id="th-sort-primary" style="min-width:165px;">
+            Period<span style="color:#4f46e5;">${sortArrow}</span>
+            <span class="th-sub">Schedule Timing</span>
+          </th>
+        `;
+        cols.forEach((c) => {
+          headHTML += `
+            <th>
+              ${esc(c.label)}
+              <span class="th-sub">${esc(c.shift)}</span>
+            </th>
+          `;
+        });
+        dom.tableHeadRow.innerHTML = headHTML;
+        bindSortHeader();
+
+        if (total === 0 || cols.length === 0) {
+          dom.tableBody.innerHTML = "";
+          dom.emptyBox.classList.remove("hidden");
+        } else {
+          dom.emptyBox.classList.add("hidden");
+          let bodyHTML = "";
+          rows.forEach((r) => {
+            let cellsHTML = "";
+            cols.forEach((c) => {
+              const cell = r.cells[c.id] || { subject: "-", teacher: "" };
+              const inner =
+                cell.subject === "-"
+                  ? `<span class="free-dash">-</span>`
+                  : `<div class="class-cell-stack">
+                      <span class="subject-pill ${getPillClass(cell.subject)}">${esc(cell.subject)}</span>
+                      ${cell.teacher ? `<span class="class-teacher-sub">${esc(cell.teacher)}</span>` : ""}
+                    </div>`;
+              cellsHTML += `<td class="editable-cell" data-edit-type="class" data-pidx="${r.pIdx}" data-cid="${esc(c.id)}" title="Click to edit ${esc(c.label)}">${inner}</td>`;
+            });
+
+            bodyHTML += `
+              <tr>
+                <td class="sticky-col" style="min-width:165px;">
+                  <div class="teacher-name">${esc(r.label)}</div>
+                  <div class="dept-tag">${esc(r.timing)}</div>
+                </td>
+                ${cellsHTML}
+              </tr>
+            `;
+
+            if (r.pIdx === 3 && state.sortDir !== "desc") {
+              bodyHTML += `
+                <tr class="recess-row">
+                  <td class="sticky-col" style="min-width:165px;">
+                    <span class="recess-tag">Recess Break</span>
+                    <div class="dept-tag" style="color:#b45309;margin-top:2px;">${esc(state.recessTiming)}</div>
+                  </td>
+                  <td colspan="${cols.length}" style="color:#92400e;font-weight:600;font-size:12px;">
+                    Mid-Day Recess &amp; Lunch Break (${esc(state.recessTiming)})
+                  </td>
+                </tr>
+              `;
+            }
+          });
+          dom.tableBody.innerHTML = bodyHTML;
+        }
+
+        renderPagination(total, startIdx, endIdx, totalPages);
+      }
+
+      function renderDailyView(sortArrow) {
+        const dayName = getWeekdayFromISO(state.dailyDate);
+        state.day = dayName;
+        dom.dailyDayChip.textContent = dayName;
+
+        const allDay = state.teacherData[state.timetable]?.[dayName] || [];
+        const absIds = getAbsenteeIdsForDate();
+        const absentee = allDay.find((t) => t.id === state.absenteeId) || allDay[0];
+        if (!absentee) return;
+
+        const subs = getDailySubsArray(absentee.id);
+        let uncoveredTotal = 0;
+        let coveredTotal = 0;
+
+        absIds.forEach((aId) => {
+          const absTeacher = allDay.find((t) => t.id === aId);
+          const aSubs = getDailySubsArray(aId);
+          if (!absTeacher) return;
+          for (let i = 0; i < PERIOD_COUNT; i++) {
+            if (absTeacher.periods[i] !== "-") {
+              if (aSubs[i]) coveredTotal++;
+              else uncoveredTotal++;
+            }
+          }
+        });
+
+        dom.statDot1.className = "dot dot-amber";
+        dom.statLabel1.textContent = "Uncovered Classes:";
+        dom.statVal1.textContent = String(uncoveredTotal);
+        dom.statDot2.className = "dot dot-emerald";
+        dom.statLabel2.textContent = "Substitutes Assigned:";
+        dom.statVal2.textContent = String(coveredTotal);
+
+        let headHTML = `
+          <th class="sticky-col sortable" id="th-sort-primary">
+            Available Teachers<span style="color:#4f46e5;">${sortArrow}</span>
+            <span class="th-sub">Daily Load &amp; Eligibility</span>
+          </th>
+        `;
+        for (let i = 0; i < PERIOD_COUNT; i++) {
+          if (!state.visiblePeriods[i]) continue;
+          headHTML += `
+            <th>
+              Period ${i + 1}
+              <span class="th-sub">${esc(state.periodTimings[i])}</span>
+            </th>
+          `;
+        }
+        dom.tableHeadRow.innerHTML = headHTML;
+        bindSortHeader();
+
+        // Pinned Absentee Row
+        let absCellsHTML = "";
+        for (let i = 0; i < PERIOD_COUNT; i++) {
+          if (!state.visiblePeriods[i]) continue;
+          const slot = absentee.periods[i];
+          const assigned = subs[i];
+          if (slot === "-" && !assigned) {
+            absCellsHTML += `<td><span class="free-dash">-</span></td>`;
+          } else {
+            const label = assigned ? assigned.subject : slot;
+            const statusHTML = assigned
+              ? `<div class="status-assigned">
+                   <span>Sub: ${esc(assigned.subName)}</span>
+                   <button type="button" class="unassign-x" data-unassign-pidx="${i}" title="Remove substitute">&times;</button>
+                 </div>`
+              : `<div class="status-unassigned">Unassigned</div>`;
+            absCellsHTML += `
+              <td>
+                <div><span class="subject-pill ${getPillClass(label)}">${esc(label)}</span></div>
+                ${statusHTML}
+              </td>
+            `;
+          }
+        }
+
+        const pinnedRowHTML = `
+          <tr class="absentee-row">
+            <td class="sticky-col">
+              <span class="absentee-kicker">Absentee Teacher (${absIds.length} Absent)</span>
+              <div class="teacher-name">${esc(absentee.name)}</div>
+              <div class="dept-tag">${esc(absentee.dept)} &bull; ${esc(formatDisplayDate(state.dailyDate))}</div>
+            </td>
+            ${absCellsHTML}
+          </tr>
+        `;
+
+        // Filter Candidate Teachers
+        const q = state.search.trim().toLowerCase();
+        const absenteeOpenPeriods = [];
+        for (let i = 0; i < PERIOD_COUNT; i++) {
+          if (state.visiblePeriods[i] && absentee.periods[i] !== "-" && !subs[i]) {
+            absenteeOpenPeriods.push(i);
+          }
+        }
+
+        let candidates = allDay.filter((t) => {
+          if (absIds.includes(t.id)) return false;
+          if (q) {
+            const mName = t.name.toLowerCase().includes(q) || t.dept.toLowerCase().includes(q);
+            const mSlot = t.periods.some((p) => p !== "-" && p.toLowerCase().includes(q));
+            if (!mName && !mSlot) return false;
+          }
+          if (state.freeOnly) {
+            const canCover = absenteeOpenPeriods.some((pIdx) => {
+              const bookedElsewhere = absIds.some((aId) => getDailySubsArray(aId)[pIdx]?.subId === t.id);
+              return t.periods[pIdx] === "-" && !bookedElsewhere;
+            });
+            if (!canCover) return false;
+          }
+          if (state.sameStreamOnly) {
+            const tStream = getAcademicStream(t.dept);
+            const matchesAnyOpen =
+              absenteeOpenPeriods.length === 0
+                ? tStream === getAcademicStream(absentee.dept)
+                : absenteeOpenPeriods.some((pIdx) => {
+                    const slotStream = getAcademicStream(absentee.periods[pIdx]);
+                    return tStream === slotStream || tStream === getAcademicStream(absentee.dept);
+                  });
+            if (!matchesAnyOpen) return false;
+          }
+          return true;
+        });
+
+        if (state.sortDir !== "none") {
+          candidates.sort((a, b) => {
+            const cmp = a.name.localeCompare(b.name);
+            return state.sortDir === "asc" ? cmp : -cmp;
+          });
+        }
+
+        const total = candidates.length;
+        const pageSize = state.pageSize === "all" ? Math.max(total, 1) : Number(state.pageSize);
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (state.page > totalPages) state.page = totalPages;
+
+        const startIdx = (state.page - 1) * pageSize;
+        const endIdx = state.pageSize === "all" ? total : Math.min(startIdx + pageSize, total);
+        const pageRows = candidates.slice(startIdx, endIdx);
+
+        dom.emptyBox.classList.add("hidden");
+
+        const rowsHTML = pageRows
+          .map((t) => {
+            const regularLoad = t.periods.filter((p) => p !== "-").length;
+            const totalProxiesToday = absIds.reduce((acc, aId) => {
+              return acc + getDailySubsArray(aId).filter((s) => s && s.subId === t.id).length;
+            }, 0);
+            const totalLoad = regularLoad + totalProxiesToday;
+            const atCap = totalLoad >= state.maxDailyCap;
+
+            let cellsHTML = "";
+            for (let i = 0; i < PERIOD_COUNT; i++) {
+              if (!state.visiblePeriods[i]) continue;
+              const regularSlot = t.periods[i];
+              const subForCurrent = subs[i]?.subId === t.id ? subs[i] : null;
+              const subForOtherAbs = absIds
+                .filter((aId) => aId !== absentee.id)
+                .map((aId) => getDailySubsArray(aId)[i])
+                .find((s) => s && s.subId === t.id);
+
+              if (subForCurrent) {
+                cellsHTML += `
+                  <td>
+                    <span class="subject-pill pill-emerald">Proxy: ${esc(subForCurrent.subject)}</span>
+                  </td>
+                `;
+              } else if (subForOtherAbs) {
+                cellsHTML += `
+                  <td>
+                    <span class="subject-pill pill-amber">Booked: ${esc(subForOtherAbs.subject)}</span>
+                  </td>
+                `;
+              } else if (regularSlot !== "-") {
+                cellsHTML += `
+                  <td>
+                    <span class="subject-pill ${getPillClass(regularSlot)}" style="opacity:0.78;">${esc(regularSlot)}</span>
+                  </td>
+                `;
+              } else if (absentee.periods[i] !== "-" && !subs[i]) {
+                cellsHTML += `
+                  <td>
+                    <button type="button" class="assign-btn ${atCap ? "over-cap" : ""}" data-assign-tid="${t.id}" data-pidx="${i}">
+                      ${atCap ? "+ Assign (Cap)" : "+ Assign"}
+                    </button>
+                  </td>
+                `;
+              } else {
+                cellsHTML += `<td><span class="free-chip">Free</span></td>`;
+              }
+            }
+
+            return `
+              <tr>
+                <td class="sticky-col">
+                  <div class="teacher-meta">
+                    <div>
+                      <div class="teacher-name">${esc(t.name)}</div>
+                      <div class="dept-tag">${esc(t.dept)}</div>
+                    </div>
+                    <span class="load-badge ${atCap ? "at-cap" : totalLoad >= 5 ? "high" : ""}">
+                      ${atCap ? `At Cap (${totalLoad}/${state.maxDailyCap})` : `${totalLoad}/8`}
+                    </span>
+                  </div>
+                </td>
+                ${cellsHTML}
+              </tr>
+            `;
+          })
+          .join("");
+
+        dom.tableBody.innerHTML = pinnedRowHTML + rowsHTML;
+        renderPagination(total, startIdx, endIdx, totalPages);
+      }
+
+      function renderTable() {
+        const sortArrow = state.sortDir === "asc" ? " ▲" : state.sortDir === "desc" ? " ▼" : "";
+        renderMultiAbsenteeBar();
+        detectScheduleClashes();
+
+        if (state.view === "teachers") {
+          renderTeachersView(sortArrow);
+        } else if (state.view === "classes") {
+          renderClassesView(sortArrow);
+        } else if (state.view === "daily") {
+          renderDailyView(sortArrow);
+        } else if (state.view === "free") {
+          renderFreePeriodsView(sortArrow);
+        } else if (state.view === "workload") {
+          renderWorkloadView(sortArrow);
+        }
+      }
+
+      // =========================================================================
+      // 10. VIEW SWITCHER & TOOLBAR SYNCHRONIZATION
+      // =========================================================================
+      function populateContextSelect() {
+        if (!dom.contextSelect) return;
+        if (state.view === "classes") {
+          dom.contextSelect.innerHTML = `
+            <option value="ALL Shift" ${state.shift === "ALL Shift" ? "selected" : ""}>ALL Shift</option>
+            <option value="Morning Shift" ${state.shift === "Morning Shift" ? "selected" : ""}>Morning Shift</option>
+            <option value="General Shift" ${state.shift === "General Shift" ? "selected" : ""}>General Shift</option>
+          `;
+        } else {
+          const tts = ["TIME TABLE I_XII", "TIME TABLE PRIMARY", "TIME TABLE SENIOR"];
+          dom.contextSelect.innerHTML = tts
+            .map((tt) => `<option value="${esc(tt)}" ${state.timetable === tt ? "selected" : ""}>${esc(tt)}</option>`)
+            .join("");
+        }
+      }
+
+      function populateAbsenteeSelect() {
+        if (!dom.absenteeSelect) return;
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        dom.absenteeSelect.innerHTML = allDay
+          .map((t) => `<option value="${t.id}" ${t.id === state.absenteeId ? "selected" : ""}>${esc(t.name)} (${esc(t.dept)})</option>`)
+          .join("");
+      }
+
+      function setView(newView) {
+        state.view = newView;
+        state.page = 1;
+        state.sortDir = "none";
+
+        document.querySelectorAll(".nav-item[data-nav-view]").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.navView === newView);
+        });
+
+        dom.tabTeachers.classList.toggle("active", newView === "teachers");
+        dom.tabClasses.classList.toggle("active", newView === "classes");
+        dom.tabDaily.classList.toggle("active", newView === "daily");
+        dom.tabFree.classList.toggle("active", newView === "free");
+        dom.tabWorkload.classList.toggle("active", newView === "workload");
+
+        dom.dailyControls.classList.toggle("hidden", newView !== "daily");
+        dom.dailySubbar.classList.toggle("hidden", newView !== "daily");
+        dom.freeSubbar.classList.toggle("hidden", newView !== "free");
+        dom.daySelect.classList.toggle("hidden", newView === "daily");
+        dom.colVisWrap.classList.toggle("hidden", newView === "free" || newView === "workload");
+        dom.printBtn.classList.toggle("hidden", newView !== "free");
+        dom.proxySlipBtn.classList.toggle("hidden", newView !== "daily");
+
+        if (newView === "teachers") {
+          dom.crumbMidSep.classList.add("hidden");
+          dom.crumbMidLink.classList.add("hidden");
+          dom.crumbCurrent.textContent = "Teacher's Periods";
+          dom.pageTitle.textContent = "Teacher's Periods";
+          dom.pageSubtitle.textContent = "Consolidated faculty timetable without duplicate columns — click any period cell to edit inline.";
+          dom.searchInput.placeholder = "Search teacher or subject...";
+        } else if (newView === "classes") {
+          dom.crumbMidSep.classList.add("hidden");
+          dom.crumbMidLink.classList.add("hidden");
+          dom.crumbCurrent.textContent = "Class's Periods";
+          dom.pageTitle.textContent = "Class's Periods";
+          dom.pageSubtitle.textContent = "Section-wise schedule with dedicated Recess divider — click any cell to update subject or teacher.";
+          dom.searchInput.placeholder = "Search period, subject or teacher...";
+        } else if (newView === "daily") {
+          dom.crumbMidSep.classList.remove("hidden");
+          dom.crumbMidLink.classList.remove("hidden");
+          dom.crumbCurrent.textContent = "Daily Periods Assignment";
+          dom.pageTitle.textContent = "Daily Periods Assignment";
+          dom.pageSubtitle.textContent = "Manage single or multiple absent teachers and assign conflict-free substitutes.";
+          dom.searchInput.placeholder = "Search available faculty...";
+          state.day = getWeekdayFromISO(state.dailyDate);
+          populateAbsenteeSelect();
+        } else if (newView === "free") {
+          dom.crumbMidSep.classList.remove("hidden");
+          dom.crumbMidLink.classList.remove("hidden");
+          dom.crumbCurrent.textContent = "Teacher Free Periods";
+          dom.pageTitle.textContent = "Teacher Free Periods";
+          dom.pageSubtitle.textContent = "Period-by-period availability sorted by lowest workload — click any teacher pill for quick proxy assignment.";
+          dom.searchInput.placeholder = "Search free teacher, stream or period...";
+        } else if (newView === "workload") {
+          dom.crumbMidSep.classList.remove("hidden");
+          dom.crumbMidLink.classList.remove("hidden");
+          dom.crumbCurrent.textContent = "Workload & Weekly Card";
+          dom.pageTitle.textContent = "Faculty Workload & Weekly Schedule Cards";
+          dom.pageSubtitle.textContent = "Audit Monday–Saturday teaching loads and generate printable individual faculty timetable cards.";
+          dom.searchInput.placeholder = "Search faculty or department...";
+        }
+
+        populateContextSelect();
+        renderColumnVisibility();
+        renderTable();
+      }
+
+      // =========================================================================
+      // 11. SUBSTITUTION ACTIONS, AUTO-ASSIGN, MODALS & EXPORTS
+      // =========================================================================
+      function assignSubstitute(subTeacherId, pIdx, customSubject) {
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        const absentee = allDay.find((t) => t.id === state.absenteeId);
+        const subTeacher = allDay.find((t) => t.id === subTeacherId);
+        if (!absentee || !subTeacher) return;
+
+        const absIds = getAbsenteeIdsForDate();
+        const conflict = absIds.some((aId) => getDailySubsArray(aId)[pIdx]?.subId === subTeacherId);
+        if (conflict) {
+          showToast(`${subTeacher.name} is already assigned a proxy in Period ${pIdx + 1}`);
+          return;
+        }
+
+        const subs = getDailySubsArray(absentee.id);
+        const subj = customSubject || (absentee.periods[pIdx] !== "-" ? absentee.periods[pIdx] : "Proxy Class");
+        subs[pIdx] = {
+          subId: subTeacher.id,
+          subName: subTeacher.name,
+          subject: subj
+        };
+        savePersistedState();
+        renderTable();
+        showToast(`Assigned ${subTeacher.name} to Period ${pIdx + 1} (${subj})`);
+      }
+
+      function autoAssignBestMatches() {
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        const absIds = getAbsenteeIdsForDate();
+        const absentee = allDay.find((t) => t.id === state.absenteeId);
+        if (!absentee) return;
+
+        const subs = getDailySubsArray(absentee.id);
+        let assignedNow = 0;
+        let skippedCap = 0;
+        let skippedStream = 0;
+
+        for (let pIdx = 0; pIdx < PERIOD_COUNT; pIdx++) {
+          if (!state.visiblePeriods[pIdx]) continue;
+          const slot = absentee.periods[pIdx];
+          if (slot === "-" || subs[pIdx]) continue;
+
+          const parsedTarget = parseSlotDetails(slot);
+          const targetStream = getAcademicStream(slot);
+
+          const eligible = allDay
+            .filter((t) => {
+              if (absIds.includes(t.id)) return false;
+              if (t.periods[pIdx] !== "-") return false;
+              const alreadyBooked = absIds.some((aId) => getDailySubsArray(aId)[pIdx]?.subId === t.id);
+              if (alreadyBooked) return false;
+
+              const regLoad = t.periods.filter((p) => p !== "-").length;
+              const proxyLoad = absIds.reduce(
+                (acc, aId) => acc + getDailySubsArray(aId).filter((s) => s && s.subId === t.id).length,
+                0
+              );
+              if (regLoad + proxyLoad >= state.maxDailyCap) {
+                skippedCap++;
+                return false;
+              }
+
+              if (state.sameStreamOnly) {
+                const tStream = getAcademicStream(t.dept);
+                if (tStream !== targetStream && tStream !== getAcademicStream(absentee.dept)) {
+                  skippedStream++;
+                  return false;
+                }
+              }
+              return true;
+            })
+            .map((t) => {
+              let score = 0;
+              const tDeptU = t.dept.toUpperCase();
+              const subjU = parsedTarget.subject.toUpperCase();
+              if (subjU && (tDeptU.includes(subjU) || subjU.includes(tDeptU))) score += 120;
+              if (getAcademicStream(t.dept) === targetStream) score += 80;
+
+              if (parsedTarget.classSection) {
+                const knowsClass = DAYS.some((d) =>
+                  (state.teacherData[state.timetable]?.[d] || [])
+                    .find((x) => x.id === t.id)
+                    ?.periods.some((p) => p.includes(`[${parsedTarget.classSection}]`))
+                );
+                if (knowsClass) score += 40;
+              }
+
+              const regLoad = t.periods.filter((p) => p !== "-").length;
+              const proxyLoad = absIds.reduce(
+                (acc, aId) => acc + getDailySubsArray(aId).filter((s) => s && s.subId === t.id).length,
+                0
+              );
+              score -= (regLoad + proxyLoad) * 15;
+              return { teacher: t, score };
+            })
+            .sort((a, b) => b.score - a.score);
+
+          if (eligible.length > 0) {
+            const best = eligible[0].teacher;
+            subs[pIdx] = {
+              subId: best.id,
+              subName: best.name,
+              subject: slot
+            };
+            assignedNow++;
+          }
+        }
+
+        savePersistedState();
+        renderTable();
+        if (assignedNow > 0) {
+          showToast(`Auto-assigned ${assignedNow} optimal substitute${assignedNow > 1 ? "s" : ""}`);
+        } else if (skippedStream > 0) {
+          showToast("No free teachers matched the Same-Subject / Stream filter");
+        } else if (skippedCap > 0) {
+          showToast(`No eligible free teachers under the ${state.maxDailyCap}-period daily cap`);
+        } else {
+          showToast("All open absentee periods are already covered");
+        }
+      }
+
+      function copyTextToClipboard(text, successMsg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => showToast(successMsg))
+            .catch(() => fallbackCopy(text, successMsg));
+        } else {
+          fallbackCopy(text, successMsg);
+        }
+      }
+
+      function fallbackCopy(text, successMsg) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(successMsg);
+        } catch (err) {
+          showToast("Unable to copy to clipboard");
+        }
+        ta.remove();
+      }
+
+      function openWeeklyCardModal(teacherId) {
+        const tMeta = RAW_TEACHERS.find((x) => x.id === teacherId);
+        if (!tMeta) return;
+        dom.weeklyCardTitle.textContent = `${tMeta.name} — Weekly Schedule Card (${state.timetable})`;
+
+        let summaryLines = [`${tMeta.name} (${tMeta.dept}) — ${state.timetable}`];
+        let tableHTML = `
+          <table class="weekly-card-table">
+            <thead>
+              <tr>
+                <th>Period &amp; Timing</th>
+                ${DAYS.map((d) => `<th>${d}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        for (let p = 0; p < PERIOD_COUNT; p++) {
+          const rowCells = DAYS.map((d) => {
+            const row = (state.teacherData[state.timetable]?.[d] || []).find((x) => x.id === teacherId);
+            const val = row ? row.periods[p] : "-";
+            return `<td>${val === "-" ? `<span class="free-dash">-</span>` : `<span class="subject-pill ${getPillClass(val)}">${esc(val)}</span>`}</td>`;
+          }).join("");
+
+          const dayLine = DAYS.map((d) => {
+            const row = (state.teacherData[state.timetable]?.[d] || []).find((x) => x.id === teacherId);
+            return `${d.slice(0, 3)}: ${row ? row.periods[p] : "-"}`;
+          }).join(" | ");
+          summaryLines.push(`Period ${p + 1} (${state.periodTimings[p]}): ${dayLine}`);
+
+          tableHTML += `
+            <tr>
+              <td><strong>Period ${p + 1}</strong><div class="dept-tag">${esc(state.periodTimings[p])}</div></td>
+              ${rowCells}
+            </tr>
+          `;
+        }
+
+        tableHTML += `</tbody></table>`;
+        dom.weeklyCardBody.innerHTML = tableHTML;
+        state.modalCopyText = summaryLines.join("\n");
+        dom.weeklyCardModal.classList.remove("hidden");
+      }
+
+      function openProxySlipModal() {
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        const absIds = getAbsenteeIdsForDate();
+        const dispDate = formatDisplayDate(state.dailyDate);
+
+        let lines = [`SCHOOLMITRA ERP — DAILY SUBSTITUTION / PROXY SLIP`, `Date: ${dispDate} (${state.day}) | Timetable: ${state.timetable}`, ""];
+        let rowsHTML = "";
+
+        absIds.forEach((aId) => {
+          const absTeacher = allDay.find((t) => t.id === aId);
+          const subs = getDailySubsArray(aId);
+          if (!absTeacher) return;
+
+          for (let p = 0; p < PERIOD_COUNT; p++) {
+            const slot = absTeacher.periods[p];
+            const assigned = subs[p];
+            if (slot === "-" && !assigned) continue;
+            const subLabel = assigned ? assigned.subName : "UNASSIGNED";
+            const subjLabel = assigned ? assigned.subject : slot;
+            lines.push(`Period ${p + 1} (${state.periodTimings[p]}) | Absent: ${absTeacher.name} | Class: ${subjLabel} -> Substitute: ${subLabel}`);
+            rowsHTML += `
+              <tr>
+                <td><strong>Period ${p + 1}</strong><div class="dept-tag">${esc(state.periodTimings[p])}</div></td>
+                <td>${esc(absTeacher.name)}</td>
+                <td><span class="subject-pill ${getPillClass(subjLabel)}">${esc(subjLabel)}</span></td>
+                <td>${assigned ? `<span class="subject-pill pill-emerald">${esc(assigned.subName)}</span>` : `<span class="status-unassigned">Unassigned</span>`}</td>
+              </tr>
+            `;
+          }
+        });
+
+        dom.weeklyCardTitle.textContent = `Daily Proxy Slip — ${dispDate} (${state.day})`;
+        dom.weeklyCardBody.innerHTML = `
+          <table class="weekly-card-table">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Absentee Teacher</th>
+                <th>Class &amp; Subject</th>
+                <th>Assigned Substitute</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHTML || `<tr><td colspan="4" style="text-align:center;color:#64748b;">No periods scheduled for selected absentee(s).</td></tr>`}
+            </tbody>
+          </table>
+        `;
+        state.modalCopyText = lines.join("\n");
+        dom.weeklyCardModal.classList.remove("hidden");
+      }
+
+      // =========================================================================
+      // 12. EXCEL CSV & BUILT-IN LANDSCAPE A4 PDF 1.4 EXPORTER
+      // =========================================================================
+      function getExportDataset() {
+        if (state.view === "classes") {
+          const cols = getActiveClassCols();
+          const headers = ["Period / Timing", ...cols.map((c) => `${c.label} (${c.shift})`)];
+          const rows = getFilteredClassRows().map((r) => [
+            `${r.label} (${r.timing})`,
+            ...cols.map((c) => {
+              const cell = r.cells[c.id];
+              if (!cell || cell.subject === "-") return "-";
+              return cell.teacher ? `${cell.subject} [${cell.teacher}]` : cell.subject;
+            })
+          ]);
+          return {
+            title: `Class's Periods — ${state.shift} (${state.day})`,
+            filename: `Class_Periods_${state.day}`,
+            headers,
+            rows
+          };
+        }
+
+        if (state.view === "free") {
+          const headers = ["Period & Timing", "Free Count", "Free Teachers (Lowest Load First)"];
+          const rows = getFilteredFreePeriodRows().map((r) => [
+            `${r.label} (${r.timing})`,
+            String(r.freeTeachers.length),
+            r.freeTeachers.map((t) => `${t.name} [${t.dept} ${t.busyCount}/8]`).join(", ") || "-"
+          ]);
+          return {
+            title: `Teacher Free Periods — ${state.timetable} (${state.day})`,
+            filename: `Teacher_Free_Periods_${state.day}`,
+            headers,
+            rows
+          };
+        }
+
+        if (state.view === "workload") {
+          const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+          const headers = ["Faculty Name", "Department", "Weekly Assigned (of 48)", "Weekly Free", `${state.day} Load`];
+          const rows = allDay.map((t) => {
+            let weekly = 0;
+            DAYS.forEach((d) => {
+              const r = (state.teacherData[state.timetable]?.[d] || []).find((x) => x.id === t.id);
+              if (r) weekly += r.periods.filter((p) => p !== "-").length;
+            });
+            return [t.name, t.dept, String(weekly), String(48 - weekly), `${t.periods.filter((p) => p !== "-").length}/8`];
+          });
+          return {
+            title: `Faculty Workload Summary — ${state.timetable}`,
+            filename: `Faculty_Workload_Summary`,
+            headers,
+            rows
+          };
+        }
+
+        // Teachers & Daily Views
+        const visIndices = [];
+        for (let i = 0; i < PERIOD_COUNT; i++) {
+          if (state.visiblePeriods[i]) visIndices.push(i);
+        }
+        const headers = [
+          state.view === "daily" ? "Teacher Name" : "Teacher's Name",
+          ...visIndices.map((i) => `Period ${i + 1} (${state.periodTimings[i]})`)
+        ];
+
+        const rows = [];
+        if (state.view === "daily") {
+          const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+          const absentee = allDay.find((t) => t.id === state.absenteeId);
+          const subs = getDailySubsArray(state.absenteeId);
+          if (absentee) {
+            rows.push([
+              `[ABSENT] ${absentee.name}`,
+              ...visIndices.map((i) => {
+                if (subs[i]) return `${subs[i].subject} -> Sub: ${subs[i].subName}`;
+                return absentee.periods[i] === "-" ? "-" : `${absentee.periods[i]} (Unassigned)`;
+              })
+            ]);
+          }
+        }
+
+        getFilteredTeachers().forEach((t) => {
+          rows.push([t.name, ...visIndices.map((i) => t.periods[i])]);
+        });
+
+        return {
+          title:
+            state.view === "daily"
+              ? `Daily Periods Assignment — ${formatDisplayDate(state.dailyDate)} (${state.day})`
+              : `Teacher's Periods — ${state.timetable} (${state.day})`,
+          filename: state.view === "daily" ? `Daily_Assignment_${state.dailyDate}` : `Teachers_Periods_${state.day}`,
+          headers,
+          rows
+        };
+      }
+
+      function exportCSV() {
+        const ds = getExportDataset();
+        const escapeCSV = (val) => `"${String(val ?? "").replace(/"/g, '""')}"`;
+        const csvLines = [ds.headers.map(escapeCSV).join(","), ...ds.rows.map((r) => r.map(escapeCSV).join(","))];
+        const blob = new Blob(["\uFEFF" + csvLines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${ds.filename}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast(`Downloaded ${ds.filename}.csv`);
+      }
+
+      function exportLandscapePDF() {
+        const ds = getExportDataset();
+        const pdfEscape = (s) =>
+          String(s ?? "")
+            .replace(/[^\x20-\x7E]/g, " ")
+            .replace(/\\/g, "\\\\")
+            .replace(/\(/g, "\\(")
+            .replace(/\)/g, "\\)");
+
+        const pageW = 841.89;
+        const pageH = 595.28;
+        const margin = 28;
+        const usableW = pageW - margin * 2;
+        const colCount = ds.headers.length;
+        const firstColW = Math.min(165, usableW * 0.24);
+        const otherColW = colCount > 1 ? (usableW - firstColW) / (colCount - 1) : usableW;
+        const rowH = 22;
+        const headerH = 28;
+        const startY = pageH - 72;
+        const maxRowsPerPage = Math.max(1, Math.floor((startY - 40 - headerH) / rowH));
+
+        const pages = [];
+        for (let r = 0; r < Math.max(1, ds.rows.length); r += maxRowsPerPage) {
+          pages.push(ds.rows.slice(r, r + maxRowsPerPage));
+        }
+
+        const objects = [];
+        const addObj = (content) => {
+          objects.push(content);
+          return objects.length;
+        };
+
+        const catalogId = addObj("");
+        const pagesId = addObj("");
+        const fontRegId = addObj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+        const fontBoldId = addObj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+
+        const pageObjIds = [];
+
+        pages.forEach((pageRows, pIdx) => {
+          let ops = [];
+          // Title Banner
+          ops.push(`0.31 0.27 0.90 rg ${margin} ${pageH - 46} ${usableW} 24 re f`);
+          ops.push(`1 1 1 rg BT /F2 11 Tf ${margin + 10} ${pageH - 38} Td (${pdfEscape(ds.title)}) Tj ET`);
+          ops.push(`0.39 0.45 0.55 rg BT /F1 8 Tf ${margin} ${pageH - 58} Td (Generated by SchoolMitra ERP) Tj ET`);
+
+          // Table Header
+          let y = startY;
+          ops.push(`0.94 0.96 0.98 rg ${margin} ${y - headerH} ${usableW} ${headerH} re f`);
+          ops.push(`0.88 0.91 0.94 RG 0.5 w ${margin} ${y - headerH} ${usableW} ${headerH} re S`);
+
+          let x = margin;
+          ds.headers.forEach((h, cIdx) => {
+            const w = cIdx === 0 ? firstColW : otherColW;
+            const maxChars = Math.max(6, Math.floor((w - 8) / 4.4));
+            const label = h.length > maxChars ? h.slice(0, maxChars - 2) + ".." : h;
+            ops.push(`0.06 0.09 0.16 rg BT /F2 7.5 Tf ${x + 4} ${y - 17} Td (${pdfEscape(label)}) Tj ET`);
+            x += w;
+          });
+
+          y -= headerH;
+
+          // Rows
+          pageRows.forEach((row, rIdx) => {
+            if (rIdx % 2 === 1) {
+              ops.push(`0.98 0.99 1.00 rg ${margin} ${y - rowH} ${usableW} ${rowH} re f`);
+            }
+            ops.push(`0.91 0.93 0.96 RG 0.4 w ${margin} ${y - rowH} ${usableW} ${rowH} re S`);
+
+            let cx = margin;
+            row.forEach((cellVal, cIdx) => {
+              const w = cIdx === 0 ? firstColW : otherColW;
+              const maxChars = Math.max(5, Math.floor((w - 8) / 4.3));
+              const txt = String(cellVal ?? "-");
+              const clipped = txt.length > maxChars ? txt.slice(0, maxChars - 2) + ".." : txt;
+              const fontRef = cIdx === 0 ? "/F2" : "/F1";
+              ops.push(`0.12 0.16 0.23 rg BT ${fontRef} 7.2 Tf ${cx + 4} ${y - 14} Td (${pdfEscape(clipped)}) Tj ET`);
+              cx += w;
+            });
+            y -= rowH;
+          });
+
+          // Footer
+          ops.push(`0.39 0.45 0.55 rg BT /F1 8 Tf ${pageW - margin - 65} 20 Td (Page ${pIdx + 1} of ${pages.length}) Tj ET`);
+
+          const streamStr = ops.join("\n");
+          const streamId = addObj(`<< /Length ${streamStr.length} >>\nstream\n${streamStr}\nendstream`);
+          const pageId = addObj(
+            `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /Font << /F1 ${fontRegId} 0 R /F2 ${fontBoldId} 0 R >> >> /Contents ${streamId} 0 R >>`
+          );
+          pageObjIds.push(pageId);
+        });
+
+        objects[catalogId - 1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+        objects[pagesId - 1] = `<< /Type /Pages /Kids [${pageObjIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageObjIds.length} >>`;
+
+        let pdf = "%PDF-1.4\n";
+        const offsets = [0];
+        objects.forEach((obj, idx) => {
+          offsets.push(pdf.length);
+          pdf += `${idx + 1} 0 obj\n${obj}\nendobj\n`;
+        });
+
+        const xrefStart = pdf.length;
+        pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+        for (let i = 1; i <= objects.length; i++) {
+          pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+        }
+        pdf += `trailer\n<< /Size ${objects.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+
+        const blob = new Blob([pdf], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${ds.filename}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast(`Downloaded ${ds.filename}.pdf (Landscape A4)`);
+      }
+
+      // =========================================================================
+      // 13. EVENT LISTENERS
+      // =========================================================================
+      const on = (target, event, handler) => {
+        if (target) target.addEventListener(event, handler);
+      };
+
+      // Sidebar Collapse & Mobile Drawer
+      on(el("sidebar-collapse-btn"), "click", () => {
+        el("erp-layout")?.classList.toggle("sidebar-collapsed");
+      });
+
+      on(el("mobile-menu-btn"), "click", () => {
+        el("erp-layout")?.classList.add("mobile-open");
+      });
+
+      on(el("sidebar-backdrop"), "click", () => {
+        el("erp-layout")?.classList.remove("mobile-open");
+      });
+
+      document.querySelectorAll(".nav-item[data-nav-view]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setView(btn.dataset.navView);
+          el("erp-layout")?.classList.remove("mobile-open");
+        });
+      });
+
+      // Top Segmented Tabs
+      on(dom.tabTeachers, "click", () => setView("teachers"));
+      on(dom.tabClasses, "click", () => setView("classes"));
+      on(dom.tabDaily, "click", () => setView("daily"));
+      on(dom.tabFree, "click", () => setView("free"));
+      on(dom.tabWorkload, "click", () => setView("workload"));
+
+      // Context & Day Selectors
+      on(dom.contextSelect, "change", (e) => {
+        if (state.view === "classes") {
+          state.shift = e.target.value;
+        } else {
+          state.timetable = e.target.value;
+          if (state.view === "daily") populateAbsenteeSelect();
+        }
+        state.page = 1;
+        renderColumnVisibility();
+        renderTable();
+      });
+
+      on(dom.daySelect, "change", (e) => {
+        state.day = e.target.value;
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.dailyDate, "change", (e) => {
+        state.dailyDate = e.target.value;
+        state.day = getWeekdayFromISO(state.dailyDate);
+        populateAbsenteeSelect();
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.absenteeSelect, "change", (e) => {
+        state.absenteeId = Number(e.target.value);
+        const absIds = getAbsenteeIdsForDate();
+        if (!absIds.includes(state.absenteeId)) {
+          absIds.push(state.absenteeId);
+        }
+        savePersistedState();
+        renderTable();
+      });
+
+      // Multi-Absentee Actions
+      on(dom.addAbsenteeBtn, "click", () => {
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        const absIds = getAbsenteeIdsForDate();
+        const nextTeacher = allDay.find((t) => !absIds.includes(t.id));
+        if (!nextTeacher) {
+          showToast("All faculty are already marked absent");
+          return;
+        }
+        absIds.push(nextTeacher.id);
+        state.absenteeId = nextTeacher.id;
+        populateAbsenteeSelect();
+        savePersistedState();
+        renderTable();
+        showToast(`Added ${nextTeacher.name} to absentee list`);
+      });
+
+      on(dom.absenteeChipList, "click", (e) => {
+        const switchId = e.target.dataset.switchAbs;
+        const removeId = e.target.dataset.removeAbs;
+        if (switchId) {
+          state.absenteeId = Number(switchId);
+          populateAbsenteeSelect();
+          renderTable();
+        } else if (removeId) {
+          const key = `${state.dailyDate}|${state.timetable}`;
+          const list = getAbsenteeIdsForDate().filter((id) => id !== Number(removeId));
+          state.absenteeIdsByDate[key] = list;
+          state.absenteeId = list[0];
+          populateAbsenteeSelect();
+          savePersistedState();
+          renderTable();
+        }
+      });
+
+      // Search & Pagination
+      on(dom.searchInput, "input", (e) => {
+        state.search = e.target.value;
+        dom.clearSearchBtn?.classList.toggle("hidden", !state.search);
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.clearSearchBtn, "click", () => {
+        state.search = "";
+        if (dom.searchInput) dom.searchInput.value = "";
+        dom.clearSearchBtn?.classList.add("hidden");
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.pageSizeSelect, "change", (e) => {
+        state.pageSize = e.target.value;
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.paginationControls, "click", (e) => {
+        const btn = e.target.closest("button[data-page]");
+        if (!btn || btn.disabled) return;
+        state.page = Number(btn.dataset.page);
+        renderTable();
+      });
+
+      // Column Visibility Popover
+      on(dom.colVisBtn, "click", (e) => {
+        e.stopPropagation();
+        dom.colVisPopover?.classList.toggle("hidden");
+      });
+
+      on(dom.colVisList, "change", (e) => {
+        if (!e.target.matches("input[type='checkbox']")) return;
+        const key = e.target.dataset.col;
+        if (state.view === "teachers" || state.view === "daily") {
+          const idx = Number(key);
+          if (!e.target.checked && state.visiblePeriods.filter(Boolean).length <= 1) {
+            e.target.checked = true;
+            return;
+          }
+          state.visiblePeriods[idx] = e.target.checked;
+        } else if (state.view === "classes") {
+          if (!e.target.checked && getActiveClassCols().length <= 1) {
+            e.target.checked = true;
+            return;
+          }
+          state.visibleClasses[key] = e.target.checked;
+        }
+        renderColumnVisibility();
+        renderTable();
+      });
+
+      on(dom.showAllColsBtn, "click", () => {
+        if (state.view === "teachers" || state.view === "daily") {
+          state.visiblePeriods = Array(PERIOD_COUNT).fill(true);
+        } else if (state.view === "classes") {
+          CLASS_COLS.forEach((c) => {
+            if (state.shift === "ALL Shift" || c.shift === state.shift) {
+              state.visibleClasses[c.id] = true;
+            }
+          });
+        }
+        renderColumnVisibility();
+        renderTable();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (dom.colVisWrap && !dom.colVisWrap.contains(e.target)) {
+          dom.colVisPopover?.classList.add("hidden");
+        }
+      });
+
+      // Table Body Delegation
+      on(dom.tableBody, "click", (e) => {
+        const assignBtn = e.target.closest("button[data-assign-tid]");
+        if (assignBtn) {
+          assignSubstitute(Number(assignBtn.dataset.assignTid), Number(assignBtn.dataset.pidx));
+          return;
+        }
+
+        const unassignBtn = e.target.closest("button[data-unassign-pidx]");
+        if (unassignBtn) {
+          const pIdx = Number(unassignBtn.dataset.unassignPidx);
+          getDailySubsArray(state.absenteeId)[pIdx] = null;
+          savePersistedState();
+          renderTable();
+          showToast(`Removed substitute for Period ${pIdx + 1}`);
+          return;
+        }
+
+        const copyListBtn = e.target.closest("button[data-copy-pidx]");
+        if (copyListBtn) {
+          const pIdx = Number(copyListBtn.dataset.copyPidx);
+          const row = getFilteredFreePeriodRows().find((r) => r.pIdx === pIdx);
+          if (row) {
+            const names = row.freeTeachers.map((t) => `${t.name} (${t.dept} ${t.busyCount}/8)`).join(", ") || "None";
+            copyTextToClipboard(`Period ${pIdx + 1} (${row.timing}) Free Teachers: ${names}`, `Copied Period ${pIdx + 1} free list`);
+          }
+          return;
+        }
+
+        const quickProxyBtn = e.target.closest("button[data-quick-proxy-tid]");
+        if (quickProxyBtn) {
+          const tid = Number(quickProxyBtn.dataset.quickProxyTid);
+          const pIdx = Number(quickProxyBtn.dataset.pidx);
+          setView("daily");
+          assignSubstitute(tid, pIdx);
+          return;
+        }
+
+        const weeklyBtn = e.target.closest("button[data-open-weekly-tid]");
+        if (weeklyBtn) {
+          openWeeklyCardModal(Number(weeklyBtn.dataset.openWeeklyTid));
+          return;
+        }
+
+        const editCell = e.target.closest("td.editable-cell");
+        if (editCell) {
+          const editType = editCell.dataset.editType;
+          const pIdx = Number(editCell.dataset.pidx);
+          if (editType === "teacher") {
+            const tid = Number(editCell.dataset.tid);
+            const teacher = (state.teacherData[state.timetable]?.[state.day] || []).find((t) => t.id === tid);
+            if (!teacher) return;
+            state.editTarget = { type: "teacher", tid, pIdx };
+            dom.editModalTitle.textContent = "Edit Teacher Period";
+            dom.editMetaTop.textContent = `${teacher.name} (${teacher.dept})`;
+            dom.editMetaVal.textContent = `${state.day} — Period ${pIdx + 1} (${state.periodTimings[pIdx]})`;
+            dom.editPrimaryLabel.textContent = "Subject & Class Section";
+            dom.editPrimaryInput.value = teacher.periods[pIdx] === "-" ? "" : teacher.periods[pIdx];
+            dom.editTeacherGroup.classList.add("hidden");
+            dom.editPresets.innerHTML = ["-", "Mathematics [XII-A]", "Accountancy [XI-B]", "English [X-A]", "LIBRARY [VII-B]", "GAMES"]
+              .map((p) => `<button type="button" class="preset-chip" data-preset="${esc(p)}">${p === "-" ? "Free (-)" : esc(p)}</button>`)
+              .join("");
+            dom.editModal.classList.remove("hidden");
+          } else if (editType === "class") {
+            const cid = editCell.dataset.cid;
+            const cell = state.classData[state.day]?.[pIdx]?.[cid] || { subject: "-", teacher: "" };
+            state.editTarget = { type: "class", cid, pIdx };
+            dom.editModalTitle.textContent = "Edit Class Period";
+            dom.editMetaTop.textContent = `Class ${cid}`;
+            dom.editMetaVal.textContent = `${state.day} — Period ${pIdx + 1} (${state.periodTimings[pIdx]})`;
+            dom.editPrimaryLabel.textContent = "Subject";
+            dom.editPrimaryInput.value = cell.subject === "-" ? "" : cell.subject;
+            dom.editTeacherGroup.classList.remove("hidden");
+            dom.editTeacherInput.value = cell.teacher || "";
+            dom.editPresets.innerHTML = ["-", "Mathematics", "English", "Science", "LIBRARY", "GAMES"]
+              .map((p) => `<button type="button" class="preset-chip" data-preset="${esc(p)}">${p === "-" ? "Free (-)" : esc(p)}</button>`)
+              .join("");
+            dom.editModal.classList.remove("hidden");
+          }
+        }
+      });
+
+      // Edit Modal Submit & Presets
+      on(dom.editPresets, "click", (e) => {
+        const btn = e.target.closest("button[data-preset]");
+        if (!btn) return;
+        dom.editPrimaryInput.value = btn.dataset.preset === "-" ? "" : btn.dataset.preset;
+      });
+
+      on(dom.editModalForm, "submit", (e) => {
+        e.preventDefault();
+        if (!state.editTarget) return;
+        const primaryVal = dom.editPrimaryInput.value.trim() || "-";
+        if (state.editTarget.type === "teacher") {
+          const teacher = (state.teacherData[state.timetable]?.[state.day] || []).find((t) => t.id === state.editTarget.tid);
+          if (teacher) teacher.periods[state.editTarget.pIdx] = primaryVal;
+        } else if (state.editTarget.type === "class") {
+          const teacherVal = primaryVal === "-" ? "" : dom.editTeacherInput.value.trim();
+          state.classData[state.day][state.editTarget.pIdx][state.editTarget.cid] = {
+            subject: primaryVal,
+            teacher: teacherVal
+          };
+        }
+        savePersistedState();
+        dom.editModal.classList.add("hidden");
+        renderTable();
+        showToast("Updated schedule slot");
+      });
+
+      on(el("close-edit-modal"), "click", () => dom.editModal?.classList.add("hidden"));
+      on(el("cancel-edit-modal"), "click", () => dom.editModal?.classList.add("hidden"));
+
+      // + Add Period Modal (Daily Assignment)
+      on(dom.addPeriodBtn, "click", () => {
+        const allDay = state.teacherData[state.timetable]?.[state.day] || [];
+        const absIds = getAbsenteeIdsForDate();
+        dom.apPeriod.innerHTML = Array.from({ length: PERIOD_COUNT }, (_, i) => `<option value="${i}">Period ${i + 1} (${state.periodTimings[i]})</option>`).join("");
+        dom.apSubject.value = "";
+        dom.apSubstitute.innerHTML = allDay
+          .filter((t) => !absIds.includes(t.id))
+          .map((t) => `<option value="${t.id}">${esc(t.name)} (${esc(t.dept)})</option>`)
+          .join("");
+        dom.addPeriodModal.classList.remove("hidden");
+      });
+
+      on(dom.addPeriodForm, "submit", (e) => {
+        e.preventDefault();
+        const pIdx = Number(dom.apPeriod.value);
+        const subj = dom.apSubject.value.trim();
+        const subId = Number(dom.apSubstitute.value);
+        if (!subj) return;
+        assignSubstitute(subId, pIdx, subj);
+        dom.addPeriodModal.classList.add("hidden");
+      });
+
+      on(el("close-add-modal"), "click", () => dom.addPeriodModal?.classList.add("hidden"));
+      on(el("cancel-add-modal"), "click", () => dom.addPeriodModal?.classList.add("hidden"));
+
+      // Timings Modal
+      on(dom.timingsBtn, "click", () => {
+        let html = "";
+        for (let i = 0; i < PERIOD_COUNT; i++) {
+          html += `
+            <div class="form-group">
+              <label for="timing-p-${i}">Period ${i + 1}</label>
+              <input type="text" id="timing-p-${i}" class="control-input" value="${esc(state.periodTimings[i])}" required />
+            </div>
+          `;
+        }
+        html += `
+          <div class="form-group" style="grid-column:1 / -1;">
+            <label for="timing-recess">Recess / Lunch Break</label>
+            <input type="text" id="timing-recess" class="control-input" value="${esc(state.recessTiming)}" required />
+          </div>
+        `;
+        dom.timingsGrid.innerHTML = html;
+        dom.timingsModal.classList.remove("hidden");
+      });
+
+      on(dom.timingsForm, "submit", (e) => {
+        e.preventDefault();
+        for (let i = 0; i < PERIOD_COUNT; i++) {
+          const val = el(`timing-p-${i}`)?.value.trim();
+          if (val) state.periodTimings[i] = val;
+        }
+        const recVal = el("timing-recess")?.value.trim();
+        if (recVal) state.recessTiming = recVal;
+        savePersistedState();
+        dom.timingsModal.classList.add("hidden");
+        renderColumnVisibility();
+        renderTable();
+        showToast("Updated period & recess timings");
+      });
+
+      on(el("reset-timings-btn"), "click", () => {
+        state.periodTimings = [...DEFAULT_PERIOD_TIMINGS];
+        state.recessTiming = DEFAULT_RECESS_TIMING;
+        savePersistedState();
+        dom.timingsModal.classList.add("hidden");
+        renderColumnVisibility();
+        renderTable();
+        showToast("Reset timings to default");
+      });
+
+      on(el("close-timings-modal"), "click", () => dom.timingsModal?.classList.add("hidden"));
+      on(el("cancel-timings-modal"), "click", () => dom.timingsModal?.classList.add("hidden"));
+
+      // Weekly Card / Proxy Slip Modal Controls
+      on(el("close-weekly-modal"), "click", () => dom.weeklyCardModal?.classList.add("hidden"));
+      on(el("done-weekly-modal"), "click", () => dom.weeklyCardModal?.classList.add("hidden"));
+      on(el("print-weekly-modal-btn"), "click", () => window.print());
+      on(el("copy-weekly-modal-btn"), "click", () => {
+        if (state.modalCopyText) copyTextToClipboard(state.modalCopyText, "Copied schedule summary to clipboard");
+      });
+
+      on(dom.proxySlipBtn, "click", openProxySlipModal);
+
+      // Sub-Toolbar Filters
+      on(dom.freeOnlyCheckbox, "change", (e) => {
+        state.freeOnly = e.target.checked;
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.sameStreamCheckbox, "change", (e) => {
+        state.sameStreamOnly = e.target.checked;
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.maxCapSelect, "change", (e) => {
+        state.maxDailyCap = Number(e.target.value);
+        if (dom.freeMaxCapSelect) dom.freeMaxCapSelect.value = e.target.value;
+        renderTable();
+      });
+
+      on(dom.freeMaxCapSelect, "change", (e) => {
+        state.maxDailyCap = Number(e.target.value);
+        if (dom.maxCapSelect) dom.maxCapSelect.value = e.target.value;
+        renderTable();
+      });
+
+      on(dom.freeStreamSelect, "change", (e) => {
+        state.freeStreamFilter = e.target.value;
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.freeUnderCapCheckbox, "change", (e) => {
+        state.freeUnderCapOnly = e.target.checked;
+        state.page = 1;
+        renderTable();
+      });
+
+      on(dom.copyAllFreeBtn, "click", () => {
+        const lines = getFilteredFreePeriodRows().map(
+          (r) => `Period ${r.pIdx + 1} (${r.timing}): ${r.freeTeachers.map((t) => `${t.name} [${t.dept}]`).join(", ") || "None"}`
+        );
+        copyTextToClipboard(`Free Teachers — ${state.day} (${state.timetable})\n\n${lines.join("\n")}`, "Copied full day free teachers list");
+      });
+
+      on(dom.clearSubsBtn, "click", () => {
+        const key = `${state.dailyDate}|${state.timetable}|${state.absenteeId}`;
+        state.dailySubs[key] = Array(PERIOD_COUNT).fill(null);
+        savePersistedState();
+        renderTable();
+        showToast("Cleared assignments for selected absentee");
+      });
+
+      on(dom.autoAssignBtn, "click", autoAssignBestMatches);
+
+      on(dom.dismissClashBtn, "click", () => {
+        dom.clashBanner?.classList.add("hidden");
+      });
+
+      on(dom.emptyResetBtn, "click", () => {
+        state.search = "";
+        if (dom.searchInput) dom.searchInput.value = "";
+        dom.clearSearchBtn?.classList.add("hidden");
+        state.freeOnly = false;
+        state.sameStreamOnly = false;
+        state.freeStreamFilter = "ALL";
+        state.freeUnderCapOnly = false;
+        if (dom.freeOnlyCheckbox) dom.freeOnlyCheckbox.checked = false;
+        if (dom.sameStreamCheckbox) dom.sameStreamCheckbox.checked = false;
+        if (dom.freeStreamSelect) dom.freeStreamSelect.value = "ALL";
+        if (dom.freeUnderCapCheckbox) dom.freeUnderCapCheckbox.checked = false;
+        state.visiblePeriods = Array(PERIOD_COUNT).fill(true);
+        CLASS_COLS.forEach((c) => (state.visibleClasses[c.id] = true));
+        renderColumnVisibility();
+        renderTable();
+      });
+
+      on(dom.resetSampleBtn, "click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        state.teacherData = buildTeacherData();
+        state.classData = buildClassData();
+        state.dailySubs = {};
+        state.absenteeIdsByDate = {};
+        state.periodTimings = [...DEFAULT_PERIOD_TIMINGS];
+        state.recessTiming = DEFAULT_RECESS_TIMING;
+        renderColumnVisibility();
+        renderTable();
+        showToast("Reset all timetable data to defaults");
+      });
+
+      on(dom.printBtn, "click", () => window.print());
+      on(dom.exportCsvBtn, "click", exportCSV);
+      on(dom.exportPdfBtn, "click", exportLandscapePDF);
+
+      // Initialize Default View
+      setView("teachers");
+    });
+  </script>
+</body>
+</html>
